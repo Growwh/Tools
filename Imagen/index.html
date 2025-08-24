@@ -198,6 +198,163 @@
             border-radius: 5px;
             display: inline-block;
         }
+        
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 20px 16px;
+                border-radius: 16px;
+                margin: 0;
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            }
+            
+            h1 {
+                font-size: 2rem;
+                margin-bottom: 20px;
+            }
+            
+            .form-group {
+                margin-bottom: 16px;
+            }
+            
+            label {
+                font-size: 13px;
+                margin-bottom: 6px;
+            }
+            
+            input, textarea, select {
+                padding: 12px;
+                font-size: 16px; /* Prevents zoom on iOS */
+                border-radius: 8px;
+            }
+            
+            textarea {
+                min-height: 70px;
+            }
+            
+            .size-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            
+            button {
+                padding: 12px 24px;
+                font-size: 14px;
+                border-radius: 8px;
+            }
+            
+            .generate-btn {
+                padding: 16px;
+                font-size: 16px;
+                margin: 16px 0;
+            }
+            
+            .result-container {
+                margin-top: 20px;
+            }
+            
+            .generated-image {
+                border-radius: 12px;
+                margin: 16px 0;
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            }
+            
+            .download-btn {
+                margin-top: 12px;
+                padding: 14px 28px;
+                font-size: 15px;
+            }
+            
+            .info {
+                padding: 12px;
+                font-size: 13px;
+                margin-bottom: 16px;
+                border-radius: 8px;
+            }
+            
+            .error {
+                padding: 12px;
+                margin: 16px 0;
+                border-radius: 8px;
+                font-size: 14px;
+            }
+            
+            .seed-display {
+                font-size: 11px;
+                padding: 4px 8px;
+                margin-top: 8px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 16px 12px;
+                border-radius: 12px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+                margin-bottom: 16px;
+            }
+            
+            input, textarea, select {
+                padding: 10px;
+                font-size: 16px;
+            }
+            
+            .generate-btn {
+                padding: 14px;
+                font-size: 15px;
+            }
+            
+            button {
+                padding: 10px 20px;
+                font-size: 13px;
+                letter-spacing: 0.5px;
+            }
+            
+            .download-btn {
+                padding: 12px 24px;
+                font-size: 14px;
+            }
+        }
+        
+        /* Tablet Styles */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .container {
+                max-width: 700px;
+                padding: 28px;
+            }
+            
+            .size-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+        }
+        
+        /* Touch-friendly improvements */
+        @media (hover: none) and (pointer: coarse) {
+            button {
+                min-height: 44px;
+                touch-action: manipulation;
+            }
+            
+            input, textarea, select {
+                min-height: 44px;
+            }
+            
+            .generate-btn {
+                min-height: 50px;
+            }
+            
+            .download-btn {
+                min-height: 48px;
+            }
+        }
     </style>
 </head>
 <body>
