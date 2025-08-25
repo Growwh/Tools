@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Performance Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700;800;900&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Custom Styles */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: transparent; /* For embedding */
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Inter', sans-serif;
+        }
+        .card-shadow {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .metric-card {
+            transition: transform 0.2s ease-in-out;
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+        }
+        .input-field {
+            transition: all 0.3s ease;
+            border: 1px solid #e5e7eb;
+            background-color: #f9fafb;
+        }
+        .input-field:focus {
+            border-color: #A78BFA;
+            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.1);
+            outline: none;
+            background-color: #ffffff;
+        }
+        .btn-generate-ai {
+            background-color: #693ab7;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(105, 58, 183, 0.25);
+        }
+        .btn-generate-ai:hover {
+            transform: translateY(-2px);
+            background-color: #5a319a;
+            box-shadow: 0 10px 25px rgba(105, 58, 183, 0.3);
+        }
+        .loading-spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #ffffff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Metric card colors from image */
+        .ctr-bg { background: #3B82F6; } /* Blue */
+        .cr-bg { background: #EC4899; } /* Pink */
+        .cpc-bg { background: #6366F1; } /* Indigo */
+        .cpm-bg { background: #14B8A6; } /* Teal */
+        .cac-bg { background: #EF4444; } /* Red */
+        .roas-bg { background: #22C55E; } /* Green */
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        
+        <!-- Header Section -->
+        <div class="text-center mb-8">
+            <div class="inline-block p-3 mb-4 bg-gradient-to-br from-[#8664cf] to-[#693ab7] rounded-xl shadow-lg">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-black bg-gradient-to-r from-[#693ab7] to-[#270a47] bg-clip-text text-transparent mb-2">
+                Digital Performance Calculator
+            </h1>
+            <p class="text-gray-600 max-w-2xl mx-auto">
+                Analyze your digital marketing performance with rule-based and AI insights.
+            </p>
+        </div>
+
+        <div class="space-y-6">
+            <!-- Top Grid for Inputs and Metrics -->
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                
+                <!-- Input Section (takes 3 columns on large screens) -->
+                <div class="lg:col-span-3 bg-white rounded-2xl card-shadow p-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs font-medium text-gray-500 flex items-center">
+                                <span class="text-sm">₹</span>
+                                <span class="ml-1">Ad Spend</span>
+                            </label>
+                            <input type="number" id="adSpend" class="w-full mt-1 p-2 input-field rounded-md text-gray-800 font-semibold" oninput="calculateMetrics()" />
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-medium text-gray-500">Impressions</label>
+                            <input type="number" id="impressions" class="w-full mt-1 p-2 input-field rounded-md text-gray-800 font-semibold" oninput="calculateMetrics()" />
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-medium text-gray-500">Clicks</label>
+                            <input type="number" id="clicks" class="w-full mt-1 p-2 input-field rounded-md text-gray-800 font-semibold" oninput="calculateMetrics()" />
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-medium text-gray-500">Conversions</label>
+                            <input type="number" id="conversions" class="w-full mt-1 p-2 input-field rounded-md text-gray-800 font-semibold" oninput="calculateMetrics()" />
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-medium text-gray-500">Revenue (₹)</label>
+                            <input type="number" id="revenue" class="w-full mt-1 p-2 input-field rounded-md text-gray-800 font-semibold" oninput="calculateMetrics()" />
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-medium text-gray-500">Avg Order Value (₹)</label>
+                            <input type="number" id="averageOrderValue" class="w-full mt-1 p-2 input-field rounded-md text-gray-800 font-semibold" oninput="calculateMetrics()" />
+                        </div>
+                        
+                        <div class="sm:col-span-2">
+                             <label class="text-xs font-medium text-gray-500">Profit Margin (%)</label>
+                             <input type="number" id="marginPercent" class="w-full mt-1 p-2 input-field rounded-md text-gray-800 font-semibold" oninput="calculateMetrics()" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results Section (takes 2 columns on large screens) -->
+                <div class="lg:col-span-2 bg-white rounded-2xl card-shadow p-6">
+                     <div class="grid grid-cols-2 gap-3">
+                        <div class="metric-card rounded-xl p-3 text-white text-center ctr-bg">
+                            <div class="text-xs opacity-90">CTR</div>
+                            <div class="text-xl font-bold" id="ctr">0.00%</div>
+                        </div>
+
+                        <div class="metric-card rounded-xl p-3 text-white text-center cr-bg">
+                            <div class="text-xs opacity-90">Conv. Rate</div>
+                            <div class="text-xl font-bold" id="cr">0.00%</div>
+                        </div>
+
+                        <div class="metric-card rounded-xl p-3 text-white text-center cpc-bg">
+                            <div class="text-xs opacity-90">CPC</div>
+                            <div class="text-xl font-bold" id="cpc">₹0.00</div>
+                        </div>
+
+                        <div class="metric-card rounded-xl p-3 text-white text-center cpm-bg">
+                            <div class="text-xs opacity-90">CPM</div>
+                            <div class="text-xl font-bold" id="cpm">₹0.00</div>
+                        </div>
+
+                        <div class="metric-card rounded-xl p-3 text-white text-center cac-bg">
+                            <div class="text-xs opacity-90">CAC</div>
+                            <div class="text-xl font-bold" id="cac">₹0.00</div>
+                        </div>
+
+                        <div class="metric-card rounded-xl p-3 text-white text-center roas-bg">
+                            <div class="text-xs opacity-90">ROAS</div>
+                            <div class="text-xl font-bold" id="roas">0.00:1</div>
+                        </div>
+                    </div>
+
+                    <div id="maxCACSection" class="mt-4 p-3 bg-purple-50 rounded-lg hidden">
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-purple-700 font-medium">Max Profitable CAC:</span>
+                            <span class="text-purple-900 font-bold text-base" id="maxCAC">₹0.00</span>
+                        </div>
+                        <div class="text-xs text-purple-600 mt-1" id="maxCACDescription">
+                            Based on margin and AOV
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rule-Based Performance Insights Section -->
+            <div id="ruleInsightsSection" class="bg-white rounded-2xl card-shadow p-6 hidden">
+                <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                    <svg class="w-5 h-5 text-purple-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Performance Insights
+                </h2>
+                <div id="ruleInsightsContent">
+                    <!-- Rule-based insights will be populated here as a grid of cards -->
+                </div>
+            </div>
+
+            <!-- Generate AI Insights Button -->
+            <div>
+                 <button 
+                    id="generateInsightsBtn" 
+                    class="w-full btn-generate-ai text-white font-bold py-4 px-6 rounded-2xl flex items-center justify-center space-x-3 text-lg"
+                    onclick="generateAIInsights()" 
+                >
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12.85,3.18L13.06,4.78C14,5.09 14.86,5.58 15.61,6.2L17.2,5.75L18.66,8.1L17.43,9.15C17.5,9.75 17.5,10.38 17.43,11L18.66,12.06L17.2,14.41L15.61,13.95C14.86,14.58 14,15.06 13.06,15.37L12.85,17H11.15L10.94,15.37C10,15.06 9.14,14.58 8.39,13.95L6.8,14.41L5.34,12.06L6.57,11C6.5,10.38 6.5,9.75 6.57,9.15L5.34,8.1L6.8,5.75L8.39,6.2C9.14,5.58 10,5.09 10.94,4.78L11.15,3.18M12,8.13A4,4 0 0,0 8,12.13A4,4 0 0,0 12,16.13A4,4 0 0,0 16,12.13A4,4 0 0,0 12,8.13M12,19.13A1.5,1.5 0 0,0 13.5,20.63A1.5,1.5 0 0,0 15,19.13A1.5,1.5 0 0,0 13.5,17.63A1.5,1.5 0 0,0 12,19.13M1.5,19.13A1.5,1.5 0 0,0 3,20.63A1.5,1.5 0 0,0 4.5,19.13A1.5,1.5 0 0,0 3,17.63A1.5,1.5 0 0,0 1.5,19.13M19.5,19.13A1.5,1.5 0 0,0 21,20.63A1.5,1.5 0 0,0 22.5,19.13A1.5,1.5 0 0,0 21,17.63A1.5,1.5 0 0,0 19.5,19.13M12,1.13A1.5,1.5 0 0,0 13.5,2.63A1.5,1.5 0 0,0 15,1.13A1.5,1.5 0 0,0 13.5,-0.37A1.5,1.5 0 0,0 12,1.13Z"></path></svg>
+                    <span id="generateBtnText">Generate AI Insights</span>
+                    <div id="loadingSpinner" class="loading-spinner hidden"></div>
+                </button>
+            </div>
+            
+             <!-- AI Insights Section -->
+             <div id="aiInsightsSection" class="bg-white rounded-2xl card-shadow p-6 hidden">
+                <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                    <svg class="w-5 h-5 text-purple-600 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M12.85,3.18L13.06,4.78C14,5.09 14.86,5.58 15.61,6.2L17.2,5.75L18.66,8.1L17.43,9.15C17.5,9.75 17.5,10.38 17.43,11L18.66,12.06L17.2,14.41L15.61,13.95C14.86,14.58 14,15.06 13.06,15.37L12.85,17H11.15L10.94,15.37C10,15.06 9.14,14.58 8.39,13.95L6.8,14.41L5.34,12.06L6.57,11C6.5,10.38 6.5,9.75 6.57,9.15L5.34,8.1L6.8,5.75L8.39,6.2C9.14,5.58 10,5.09 10.94,4.78L11.15,3.18M12,8.13A4,4 0 0,0 8,12.13A4,4 0 0,0 12,16.13A4,4 0 0,0 16,12.13A4,4 0 0,0 12,8.13Z"></path></svg>
+                    AI Performance Insights
+                </h2>
+                <div id="aiInsightsContent" class="space-y-4">
+                    <!-- AI insights will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentMetrics = {}; 
+
+        async function callTextAPI(prompt, retries = 3) {
+            for (let attempt = 1; attempt <= retries; attempt++) {
+                try {
+                    const response = await fetch(`https://text.pollinations.ai/${encodeURIComponent(prompt)}`, {
+                        method: 'GET',
+                        signal: AbortSignal.timeout(30000) // 30 second timeout
+                    });
+                    
+                    if (!response.ok) throw new Error(`API responded with status: ${response.status}`);
+                    
+                    const text = await response.text();
+                    if (!text || text.trim().length === 0) throw new Error('API returned empty response');
+                    
+                    return text;
+                } catch (error) {
+                    console.error(`API attempt ${attempt} failed:`, error);
+                    if (attempt === retries) throw new Error(`Failed to get AI insights after ${retries} attempts: ${error.message}`);
+                }
+            }
+        }
+
+        function calculateMetrics() {
+            const getVal = id => parseFloat(document.getElementById(id).value) || 0;
+            
+            const adSpend = getVal('adSpend');
+            const impressions = getVal('impressions');
+            const clicks = getVal('clicks');
+            const conversions = getVal('conversions');
+            const revenue = getVal('revenue');
+            const averageOrderValue = getVal('averageOrderValue');
+            const marginPercent = getVal('marginPercent');
+
+            const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
+            const cr = clicks > 0 ? (conversions / clicks) * 100 : 0;
+            const cpc = clicks > 0 ? adSpend / clicks : 0;
+            const cpm = impressions > 0 ? (adSpend / impressions) * 1000 : 0;
+            const cac = conversions > 0 ? adSpend / conversions : 0;
+            const roas = adSpend > 0 ? revenue / adSpend : 0;
+            
+            const actualAOV = (conversions > 0 && revenue > 0) ? revenue / conversions : averageOrderValue;
+            const maxCAC = actualAOV > 0 && marginPercent > 0 ? (actualAOV * marginPercent) / 100 : 0;
+
+            currentMetrics = {
+                ctr: ctr.toFixed(2), cr: cr.toFixed(2), cpc: cpc.toFixed(2),
+                cpm: cpm.toFixed(2), cac: cac.toFixed(2), roas: roas.toFixed(2),
+                aov: actualAOV.toFixed(2), maxCAC: maxCAC.toFixed(2),
+                inputs: { adSpend, impressions, clicks, conversions, revenue, averageOrderValue, marginPercent }
+            };
+
+            updateUI();
+            generateRuleBasedInsights();
+        }
+
+        function updateUI() {
+            document.getElementById('ctr').textContent = currentMetrics.ctr + '%';
+            document.getElementById('cr').textContent = currentMetrics.cr + '%';
+            document.getElementById('cpc').textContent = '₹' + currentMetrics.cpc;
+            document.getElementById('cpm').textContent = '₹' + currentMetrics.cpm;
+            document.getElementById('cac').textContent = '₹' + currentMetrics.cac;
+            document.getElementById('roas').textContent = currentMetrics.roas + ':1';
+
+            const maxCACSection = document.getElementById('maxCACSection');
+            if (parseFloat(currentMetrics.maxCAC) > 0) {
+                maxCACSection.classList.remove('hidden');
+                document.getElementById('maxCAC').textContent = '₹' + currentMetrics.maxCAC;
+                document.getElementById('maxCACDescription').textContent = 
+                    `Based on ${currentMetrics.inputs.marginPercent}% margin and ₹${currentMetrics.aov} AOV`;
+            } else {
+                maxCACSection.classList.add('hidden');
+            }
+        }
+        
+        function generateRuleBasedInsights() {
+            const insightsContent = document.getElementById('ruleInsightsContent');
+            const ruleInsightsSection = document.getElementById('ruleInsightsSection');
+            insightsContent.innerHTML = '';
+
+            if (!currentMetrics.inputs || Object.values(currentMetrics.inputs).every(val => val === 0)) {
+                ruleInsightsSection.classList.add('hidden');
+                return;
+            }
+            
+            const insights = [];
+            const { ctr, cr, cac, roas, maxCAC } = {
+                ctr: parseFloat(currentMetrics.ctr), cr: parseFloat(currentMetrics.cr),
+                cac: parseFloat(currentMetrics.cac), roas: parseFloat(currentMetrics.roas),
+                maxCAC: parseFloat(currentMetrics.maxCAC)
+            };
+
+            const CTR_THRESHOLD_LOW = 1.0, CTR_THRESHOLD_HIGH = 3.0;
+            const CR_THRESHOLD_LOW = 2.0, CR_THRESHOLD_HIGH = 5.0;
+            const ROAS_THRESHOLD_LOW = 3.0, ROAS_THRESHOLD_HIGH = 6.0;
+
+            // CTR Analysis
+            if (ctr < CTR_THRESHOLD_LOW) insights.push({ type: 'warning', metric: 'CTR', message: `Low CTR (${currentMetrics.ctr}%) may indicate ad creative or targeting issues.`, recommendation: 'Test new ad creatives or refine audience targeting.' });
+            else if (ctr > CTR_THRESHOLD_HIGH) insights.push({ type: 'success', metric: 'CTR', message: `Excellent CTR (${currentMetrics.ctr}%) shows strong ad engagement.`, recommendation: 'Consider scaling this successful creative/targeting.' });
+            else insights.push({ type: 'info', metric: 'CTR', message: `Current CTR (${currentMetrics.ctr}%) is within a reasonable range.`, recommendation: 'Monitor performance closely.' });
+            
+            // Conversion Rate Analysis
+            if (cr < CR_THRESHOLD_LOW) insights.push({ type: 'warning', metric: 'Conversion Rate', message: `Low CR (${currentMetrics.cr}%) suggests landing page or offer issues.`, recommendation: 'Optimize landing page, improve load speed, or test CTAs.' });
+            else if (cr > CR_THRESHOLD_HIGH) insights.push({ type: 'success', metric: 'Conversion Rate', message: `Strong CR (${currentMetrics.cr}%) indicates effective landing pages.`, recommendation: 'Consider increasing ad spend for this traffic.' });
+            else insights.push({ type: 'info', metric: 'Conversion Rate', message: `Current CR (${currentMetrics.cr}%) is performing well.`, recommendation: 'Maintain focus on conversion optimization.' });
+
+            // CAC Profitability Analysis
+            if (maxCAC > 0) {
+                if (cac > maxCAC) insights.push({ type: 'danger', metric: 'CAC Profitability', message: `CAC (₹${currentMetrics.cac}) is higher than the profitable max (₹${currentMetrics.maxCAC}).`, recommendation: 'Reduce acquisition costs or improve CR to be profitable.' });
+                else insights.push({ type: 'success', metric: 'CAC Profitability', message: `CAC (₹${currentMetrics.cac}) is within the profitable range.`, recommendation: 'Consider increasing budget to scale profitable campaigns.' });
+            } else {
+                insights.push({ type: 'info', metric: 'CAC Profitability', message: 'Max CAC not determined.', recommendation: 'Enter AOV and Profit Margin for profitability insights.' });
+            }
+            
+            // ROAS Analysis
+            if (roas < ROAS_THRESHOLD_LOW) insights.push({ type: 'warning', metric: 'ROAS', message: `ROAS (${currentMetrics.roas}:1) is below the recommended profitability threshold.`, recommendation: 'Improve targeting or optimize for higher-value customers.' });
+            else if (roas > ROAS_THRESHOLD_HIGH) insights.push({ type: 'success', metric: 'ROAS', message: `Excellent ROAS (${currentMetrics.roas}:1) indicates highly profitable campaigns.`, recommendation: 'Scale successful campaigns and replicate winning strategies.' });
+            else insights.push({ type: 'info', metric: 'ROAS', message: `Current ROAS (${currentMetrics.roas}:1) is in a healthy range.`, recommendation: 'Continue monitoring and optimizing.' });
+
+            insightsContent.className = 'grid grid-cols-1 sm:grid-cols-2 gap-4';
+            insights.forEach(insight => insightsContent.appendChild(createInsightCard(insight)));
+            ruleInsightsSection.classList.remove('hidden');
+        }
+
+        function createInsightCard(insight) {
+            const card = document.createElement('div');
+            let borderColor = 'border-gray-300', iconColor = 'text-gray-500', bgColor = 'bg-gray-100', textColor = 'text-gray-800';
+            let mainIconSVG = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+            
+            switch (insight.type) {
+                case 'success':
+                    borderColor = 'border-green-400'; mainIconSVG = `<svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+                    bgColor = 'bg-yellow-50'; textColor = 'text-yellow-800'; break;
+                case 'warning':
+                    borderColor = 'border-yellow-400'; mainIconSVG = `<svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
+                    bgColor = 'bg-yellow-50'; textColor = 'text-yellow-800'; break;
+                case 'danger':
+                    borderColor = 'border-red-400'; mainIconSVG = `<svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+                    bgColor = 'bg-yellow-50'; textColor = 'text-yellow-800'; break;
+                case 'info':
+                    borderColor = 'border-blue-400'; mainIconSVG = `<svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>`;
+                    bgColor = 'bg-yellow-50'; textColor = 'text-yellow-800'; break;
+            }
+
+            card.className = `bg-white p-4 rounded-lg border-l-4 ${borderColor}`;
+            card.innerHTML = `
+                <div class="flex items-center text-gray-800 font-semibold mb-2 text-sm">
+                    ${mainIconSVG} <span class="ml-2">${insight.metric}</span>
+                </div>
+                <p class="text-sm text-gray-600">${insight.message}</p>
+                <div class="flex items-center text-xs ${textColor} ${bgColor} p-2 rounded-md mt-3">
+                    <span class="font-semibold">💡 ${insight.recommendation}</span>
+                </div>`;
+            return card;
+        }
+
+        async function generateAIInsights() {
+            const btn = document.getElementById('generateInsightsBtn');
+            const btnText = document.getElementById('generateBtnText');
+            const spinner = document.getElementById('loadingSpinner');
+            const insightsSection = document.getElementById('aiInsightsSection');
+
+            if (!currentMetrics.inputs || Object.values(currentMetrics.inputs).every(val => val === 0)) {
+                alert('Please fill in the campaign data first to generate insights.');
+                return;
+            }
+
+            btn.disabled = true;
+            btnText.textContent = 'Generating...';
+            spinner.classList.remove('hidden');
+            insightsSection.classList.add('hidden');
+
+            try {
+                const prompt = `Analyze the following marketing data and provide 3-4 key insights. Respond ONLY with a valid JSON object in this format: { "insights": [{ "type": "success" | "warning" | "danger" | "info", "metric": "Metric Name", "message": "Detailed observation.", "recommendation": "Actionable suggestion." }] }. Do not include any text before or after the JSON. Data: CTR=${currentMetrics.ctr}%, Conv. Rate=${currentMetrics.cr}%, CPC=₹${currentMetrics.cpc}, CAC=₹${currentMetrics.cac}, ROAS=${currentMetrics.roas}:1, Max Profitable CAC=₹${currentMetrics.maxCAC}, Ad Spend=₹${currentMetrics.inputs.adSpend}.`;
+                
+                const aiResponseText = await callTextAPI(prompt);
+                displayAIInsights(aiResponseText);
+                insightsSection.classList.remove('hidden');
+            } catch (error) {
+                console.error('Error generating AI insights:', error);
+                const content = document.getElementById('aiInsightsContent');
+                content.innerHTML = `<div class="p-4 rounded-lg bg-red-50 border-l-4 border-red-400 text-red-800">Failed to generate AI insights: ${error.message}</div>`;
+                insightsSection.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btnText.textContent = 'Generate AI Insights';
+                spinner.classList.add('hidden');
+            }
+        }
+
+        function displayAIInsights(rawResponseText) {
+            const content = document.getElementById('aiInsightsContent');
+            content.innerHTML = '';
+            
+            try {
+                // Try to find a JSON object within the response text, in case the API adds extra text/markdown
+                const jsonMatch = rawResponseText.match(/\{[\s\S]*\}/);
+                if (!jsonMatch) throw new Error("No JSON object found in the AI response.");
+                const cleanedText = jsonMatch[0];
+                const aiInsightsData = JSON.parse(cleanedText);
+
+                if (aiInsightsData.insights && Array.isArray(aiInsightsData.insights)) {
+                    aiInsightsData.insights.forEach(insight => {
+                        const insightDiv = document.createElement('div');
+                        insightDiv.className = 'p-4 rounded-lg bg-purple-50 border-l-4 border-purple-400';
+                        insightDiv.innerHTML = `
+                            <h4 class="font-semibold text-purple-900 mb-1">${insight.metric}</h4>
+                            <p class="text-sm text-gray-700 mb-2">${insight.message}</p>
+                            <p class="text-sm text-purple-800 font-medium">💡 ${insight.recommendation}</p>`;
+                        content.appendChild(insightDiv);
+                    });
+                } else {
+                     throw new Error("JSON is valid but doesn't contain the expected 'insights' array.");
+                }
+            } catch (e) {
+                console.error("Failed to parse AI response as JSON:", e);
+                content.innerHTML = `
+                    <div class="p-4 rounded-lg bg-yellow-50 border-l-4 border-yellow-400">
+                        <h4 class="font-semibold text-yellow-900">AI Response (Raw Text)</h4>
+                        <p class="text-sm text-yellow-800 mt-2 whitespace-pre-wrap">${rawResponseText}</p>
+                    </div>`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('adSpend').value = '50000';
+            document.getElementById('impressions').value = '1000000';
+            document.getElementById('clicks').value = '25000';
+            document.getElementById('conversions').value = '1250';
+            document.getElementById('revenue').value = '250000';
+            document.getElementById('averageOrderValue').value = '200';
+            document.getElementById('marginPercent').value = '30';
+            calculateMetrics();
+        });
+    </script>
+</body>
+</html>
