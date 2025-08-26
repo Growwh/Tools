@@ -226,7 +226,6 @@
                     if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
 
                     const raw = await response.json();
-                    console.log("Raw response:", raw);
                     if (!raw?.candidates?.length || !raw.candidates[0]?.content?.parts?.length) {
                         throw new Error("Invalid API response format");
                     }
