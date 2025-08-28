@@ -743,14 +743,15 @@
         }
 
         async function getSuggestions() {
-            event.target.style.display = 'none';
 
             const mainTopic = document.getElementById('mainTopic').value.trim();
             const blogTone = document.getElementById('blogTone').value;
             const contentLength = document.getElementById('contentLength').value;
             const targetAudience = document.getElementById('targetAudience').value;
-            
-            if (!mainTopic || !blogTone || !contentLength || !targetAudience) {
+            const contentType = document.getElementById('contentType').value;
+            const seoFocus = document.getElementById('seoFocus').value;
+
+            if (!mainTopic || !blogTone || !contentLength || !targetAudience || !contentType || !seoFocus) {
                 showToast('Please fill in all required fields', 'error');
                 return;
             }
@@ -768,6 +769,7 @@
             `;
             
             try {
+                event.target.style.display = 'none';
                 const contentType = document.getElementById('contentType').value || 'how-to';
                 const seoFocus = document.getElementById('seoFocus').value || 'high-traffic';
                 const specificKeywords = document.getElementById('specificKeywords').value;
@@ -817,6 +819,7 @@ IMPORTANT: Respond ONLY with a valid JSON array of objects. Do not include any o
                                 }]
                             }]
                         })
+                        
                     });
                 
                 if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
