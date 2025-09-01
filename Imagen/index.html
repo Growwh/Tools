@@ -367,7 +367,7 @@
         
         <div class="form-group">
             <label for="prompt">✨ Prompt</label>
-            <textarea id="prompt" placeholder="Describe the image you want to generate... (e.g., 'A majestic lion in a golden savanna at sunset')">dog</textarea>
+            <textarea id="prompt" placeholder="Describe the image you want to generate... (e.g., 'A majestic lion in a golden savanna at sunset')"></textarea>
         </div>
         
         <div class="form-group">
@@ -403,7 +403,6 @@
         // Configuration
         const API_CONFIG = {
             baseUrl: 'https://image.pollinations.ai/prompt/',
-            model: 'flux',
             token: 'ImavcR8ePwOIEkXh',
             defaultNegativePrompt: 'blurry, worst quality, low-res',
             nologo: true,
@@ -421,18 +420,53 @@
             return encodeURIComponent(prompt.trim());
         }
         
-        function buildImageUrl(prompt, width, height, seed, negativePrompt) {
-            const encodedPrompt = encodePrompt(prompt);
-            const encodedNegativePrompt = encodePrompt(negativePrompt || API_CONFIG.defaultNegativePrompt);
-            
-            return `${API_CONFIG.baseUrl}${encodedPrompt}?width=${width}&height=${height}&seed=${seed}&model=${API_CONFIG.model}&token=${API_CONFIG.token}&negative_prompt=${encodedNegativePrompt}&nologo=${API_CONFIG.nologo}&safe=${API_CONFIG.safe}`;
+// REVISED FUNCTION
+async function buildImageUrl(prompt, width, height, seed, negativePrompt) {
+    // Note: API_CONFIG.model is no longer used, as we define models here.
+    const encodedPrompt = encodePrompt(prompt);
+    const encodedNegativePrompt = encodePrompt(negativePrompt || API_CONFIG.defaultNegativePrompt);
+    
+    // Helper function to create a model-specific URL
+    const makeUrl = (model) => 
+        `${API_CONFIG.baseUrl}${encodedPrompt}?width=${width}&height=${height}&seed=${seed}&model=${model}&token=${API_CONFIG.token}&negative_prompt=${encodedNegativePrompt}&nologo=${API_CONFIG.nologo}&safe=${API_CONFIG.safe}`;
+
+    const fluxUrl = makeUrl("flux"); // Primary model URL
+    console.log("Attempting to generate image with primary model (Flux)...");
+
+    try {
+        // --- ATTEMPT 1: Try the Flux model ---
+        const fluxResponse = await fetch(fluxUrl);
+        if (fluxResponse.ok) {
+            console.log("Successfully generated image with Flux model.");
+            return fluxUrl; // Success! Return the URL and exit.
         }
+        throw new Error(`Flux model responded with status: ${fluxResponse.status}`);
+
+    } catch (error) {
+        console.warn(`Flux model failed: ${error.message}. Retrying with fallback model (Turbo)...`);
+        
+        // --- ATTEMPT 2: Try the Turbo model as a fallback ---
+        const turboUrl = makeUrl("turbo");
+        try {
+            const turboResponse = await fetch(turboUrl);
+            if (turboResponse.ok) {
+                console.log("Successfully generated image with Turbo model as fallback.");
+                return turboUrl; // Success on the fallback!
+            }
+            throw new Error(`Turbo model responded with status: ${turboResponse.status}`);
+        } catch (fallbackError) {
+            console.error(`Fallback model (Turbo) also failed: ${fallbackError.message}`);
+            // If both fail, throw a final error that the main function can catch.
+            throw new Error("Image generation failed for both primary and fallback models.");
+        }
+    }
+}
         
         function showError(message) {
             const resultContainer = document.getElementById('resultContainer');
             resultContainer.innerHTML = `
                 <div class="error">
-                    <strong>❌ Error:</strong> ${message}
+                    <strong>Error:</strong> ${message}
                 </div>
             `;
         }
@@ -442,8 +476,7 @@
             resultContainer.innerHTML = `
                 <div style="text-align: center; padding: 40px;">
                     <div style="font-size: 48px; margin-bottom: 20px;">🎨</div>
-                    <div style="font-size: 18px; color: #666;">Creating your masterpiece...</div>
-                    <div style="width: 50px; height: 50px; border: 3px solid #f3f3f3; border-top: 3px solid #693ab7; border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto;"></div>
+                    <div style="font-size: 18px; color: #666; ">Creating your masterpiece...</div>
                 </div>
             `;
         }
@@ -474,7 +507,7 @@
             
             try {
                 // Build the image URL
-                currentImageUrl = buildImageUrl(prompt, width, height, currentSeed, negativePrompt);
+                currentImageUrl = await buildImageUrl(prompt, width, height, currentSeed, negativePrompt);
                 
                 // Create image element and wait for it to load
                 const img = new Image();
@@ -496,7 +529,7 @@
                     // Re-enable button
                     generateBtn.disabled = false;
                     generateBtn.classList.remove('loading');
-                    generateBtn.textContent = '🎭 Generate Image';
+                    generateBtn.textContent = 'Generate';
                 };
                 
                 img.onerror = function() {
