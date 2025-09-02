@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marketing Campaign Generator - AI-Powered Planning for Indian Startups by Growwh.com</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.1.0"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+            color: #270a47;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #270a47, #693ab7, #da3d72);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+        
+        .form-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .form-group {
+            position: relative;
+        }
+        
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .form-group.half-width {
+            grid-column: span 1;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: inherit;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #fafbfc;
+            color: #2c3e50;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #693ab7;
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(105, 58, 183, 0.08);
+            transform: translateY(-1px);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+        }
+        
+        .range-input {
+            width: 100%;
+            margin: 16px 0;
+        }
+        
+        .range-input input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(to right, #693ab7, #da3d72);
+            border-radius: 4px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .range-input input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #ffffff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .range-value {
+            text-align: center;
+            font-weight: 600;
+            color: #693ab7;
+            font-size: 18px;
+            margin-top: 8px;
+        }
+        
+        .generate-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #693ab7, #270a47);
+            color: white;
+            border: none;
+            padding: 20px;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 32px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .generate-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(105, 58, 183, 0.4);
+        }
+        
+        .generate-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .info-card {
+            background: rgba(105, 58, 183, 0.1);
+            border: 1px solid rgba(105, 58, 183, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 32px;
+            position: relative;
+        }
+        
+        .info-card::before {
+            content: "🚀";
+            font-size: 24px;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+        
+        .info-card .info-content {
+            margin-left: 40px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+        
+        .status-message {
+            text-align: center;
+            padding: 40px;
+            border-radius: 16px;
+            margin: 24px 0;
+            font-weight: 600;
+        }
+        
+        .loading {
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            color: #64748b;
+        }
+        
+        .error {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: #dc2626;
+            border: 2px solid #f87171;
+        }
+        
+        .success {
+            background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+            color: #16a34a;
+            border: 2px solid #4ade80;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(100, 116, 139, 0.2);
+            border-top: 3px solid #64748b;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        .visual-concept-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+        }
+
+        .visual-concept-card {
+            display: flex;
+            flex-direction: column;
+            background: #f8fafc;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .visual-concept-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            border-color: #693ab7;
+        }
+
+        .visual-concept-card img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            filter: saturate(1.2);
+        }
+        
+        .visual-concept-details {
+            padding: 20px;
+        }
+        
+        .visual-concept-details h5 {
+            font-size: 1.1rem;
+            color: #2c3e50;
+            margin-bottom: 12px;
+        }
+
+        .visual-concept-details p {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .visual-concept-details p strong {
+            color: #2c3e50;
+        }
+
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 32px;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .step-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .step.active .step-number {
+            background: #693ab7;
+            color: white;
+        }
+        
+        .step.completed .step-number {
+            background: #10b981;
+            color: white;
+        }
+        
+        .step-text {
+            font-weight: 500;
+            color: #6b7280;
+            white-space: nowrap;
+        }
+        
+        .step.active .step-text {
+            color: #693ab7;
+            font-weight: 600;
+        }
+        
+        .step-divider {
+            width: 40px;
+            height: 2px;
+            background: #e5e7eb;
+        }
+        
+        .campaign-dashboard {
+            margin-top: 40px;
+        }
+        
+        .dashboard-section {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+        
+        .section-header h3 {
+            color: #693ab7;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .section-icon {
+            font-size: 24px;
+        }
+        
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .content-card {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #e1e5e9;
+            transition: all 0.3s ease;
+        }
+        
+        .content-card:hover {
+            border-color: #693ab7;
+            background: rgba(105, 58, 183, 0.05);
+        }
+        
+        .content-card h4 {
+            color: #2c3e50;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        
+        .content-card p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin: 20px 0;
+        }
+        
+        .chart-small {
+            height: 250px;
+        }
+        
+        .budget-table {
+            width: 100%;
+            margin-top: 24px;
+            border-collapse: collapse;
+        }
+        .budget-table th, .budget-table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #e1e5e9;
+        }
+        .budget-table th {
+            background-color: #f8fafc;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .budget-table td:last-child {
+            font-weight: 700;
+            color: #693ab7;
+        }
+        
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 32px;
+        }
+        
+        .action-btn {
+            background: linear-gradient(135deg, #da3d72, #5e407b);
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .action-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(218, 61, 114, 0.3);
+        }
+        
+        .action-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .retry-section {
+            text-align: center;
+            margin-top: 24px;
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .retry-btn {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .retry-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3);
+        }
+        
+        .clear-btn {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .clear-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(107, 114, 128, 0.3);
+        }
+        
+        .toast {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            z-index: 1000;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            transform: translateX(400px);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+        }
+        
+        .toast.success {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+        
+        .toast.error {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
+            
+            .container {
+                padding: 24px 20px;
+                border-radius: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .form-section {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .checkbox-group {
+                grid-template-columns: 1fr;
+            }
+            
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .visual-concept-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            .step-text {
+                display: none;
+            }
+            
+            .step-divider {
+                width: 20px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px 16px;
+            }
+            
+            .header h1 {
+                font-size: 1.9rem;
+            }
+            
+            .step-indicator {
+                gap: 8px;
+            }
+            
+            .step-divider {
+                display: none;
+            }
+        }
+
+        /* Print-specific Styles */
+        @media print {
+            body {
+                padding: 0;
+                background: #fff;
+                color: #000;
+            }
+            .container {
+                box-shadow: none;
+                border: none;
+                padding: 0;
+                max-width: 100%;
+            }
+            .header h1 {
+                -webkit-text-fill-color: #000;
+            }
+            .step-indicator, .info-card, .retry-section, .form-section {
+                display: none !important;
+            }
+            .dashboard-section {
+                box-shadow: none;
+                border: 1px solid #ddd;
+                padding: 20px;
+                page-break-inside: avoid;
+            }
+            .visual-concept-card {
+                page-break-inside: avoid;
+            }
+            .chart-container {
+                height: 350px !important;
+            }
+            .chart-small {
+                height: 200px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔊 Marketing Campaign Generator</h1>
+            <p>AI-powered campaign planning tool designed for Indian startup founders</p>
+        </div>
+        
+        <div class="step-indicator">
+            <div class="step active" id="step1">
+                <div class="step-number">1</div>
+                <div class="step-text">Campaign Basics</div>
+            </div>
+            <div class="step-divider"></div>
+            <div class="step" id="step2">
+                <div class="step-number">2</div>
+                <div class="step-text">Target Audience</div>
+            </div>
+            <div class="step-divider"></div>
+            <div class="step" id="step3">
+                <div class="step-number">3</div>
+                <div class="step-text">Product & Budget</div>
+            </div>
+            <div class="step-divider"></div>
+            <div class="step" id="step4">
+                <div class="step-number">4</div>
+                <div class="step-text">Campaign Plan</div>
+            </div>
+        </div>
+        
+        <div class="info-card">
+            <div class="info-content">
+                <strong>For Indian Startups:</strong> This tool generates India-focused marketing campaigns with local insights, budget-friendly strategies, and culturally relevant content. All pricing is in ₹ and optimized for the Indian market.
+            </div>
+        </div>
+        
+        <!-- Step 1: Campaign Basics -->
+        <div class="form-section" id="step1Form">
+            <div class="form-group">
+                <label for="campaignName">Campaign Name *</label>
+                <input type="text" id="campaignName" placeholder="e.g., Diwali Sale 2024" required maxlength="100">
+            </div>
+            
+            <div class="form-group">
+                <label for="campaignGoal">Campaign Goal *</label>
+                <select id="campaignGoal" required>
+                    <option value="">Select Primary Goal</option>
+                    <option value="brand-awareness">🎯 Brand Awareness</option>
+                    <option value="engagement">💬 Engagement & Community</option>
+                    <option value="lead-generation">🎯 Lead Generation</option>
+                    <option value="sales-conversion">💰 Sales & Conversions</option>
+                    <option value="customer-retention">❤️ Customer Retention</option>
+                    <option value="product-launch">🚀 Product Launch</option>
+                    <option value="market-expansion">📈 Market Expansion</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="campaignDuration">Campaign Duration *</label>
+                <select id="campaignDuration" required>
+                    <option value="">Select Duration</option>
+                    <option value="1-week">1 Week (Sprint Campaign)</option>
+                    <option value="1-month">1 Month (Standard Campaign)</option>
+                    <option value="3-months">3 Months (Quarter Campaign)</option>
+                    <option value="6-months">6 Months (Long-term Campaign)</option>
+                </select>
+            </div>
+            
+            <div class="form-group full-width">
+                <label for="campaignDescription">Campaign Description *</label>
+                <textarea id="campaignDescription" placeholder="Brief description of what you want to achieve with this campaign" required maxlength="300"></textarea>
+            </div>
+            
+            <div class="form-group full-width">
+                <label for="campaignBudget">Campaign Budget (₹) *</label>
+                <div class="range-input">
+                    <input type="range" id="campaignBudget" min="10000" max="1000000" value="50000" step="5000" oninput="updateBudgetDisplay()">
+                    <div class="range-value" id="budgetDisplay">₹50,000</div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 12px; color: #666; margin-top: 8px;">
+                    <span>₹10K (Startup)</span>
+                    <span>₹50K (SMB)</span>
+                    <span>₹2.5L (Growth)</span>
+                    <span>₹10L+ (Scale)</span>
+                </div>
+            </div>
+
+            <div class="form-group full-width">
+                <button class="generate-btn" onclick="nextStep(2)">
+                    Next
+                </button>
+            </div>
+
+        </div>
+        
+        <!-- Step 2: Target Audience -->
+        <div class="form-section" id="step2Form" style="display: none;">
+            <div class="form-group">
+                <label for="ageRange">Age Range *</label>
+                <select id="ageRange" required>
+                    <option value="">Select Age Range</option>
+                    <option value="18-25">18-25 (Gen Z)</option>
+                    <option value="26-35">26-35 (Young Millennials)</option>
+                    <option value="36-45">36-45 (Millennials)</option>
+                    <option value="46-55">46-55 (Gen X)</option>
+                    <option value="55+">55+ (Boomers)</option>
+                    <option value="all">All Age Groups</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="gender">Gender *</label>
+                <select id="gender" required>
+                    <option value="">Select Gender</option>
+                    <option value="all">All Genders</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="non-binary">Non-binary</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="location">Primary Location *</label>
+                <select id="location" required>
+                    <option value="">Select Location</option>
+                    <option value="tier1-metros">Tier 1 Cities (Mumbai, Delhi, Bangalore, etc.)</option>
+                    <option value="tier2-cities">Tier 2 Cities (Pune, Ahmedabad, Jaipur, etc.)</option>
+                    <option value="tier3-towns">Tier 3 Towns & Rural Areas</option>
+                    <option value="pan-india">Pan India</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="incomeLevel">Income Level *</label>
+                <select id="incomeLevel" required>
+                    <option value="">Select Income Level</option>
+                    <option value="budget-conscious">Budget-Conscious (&lt;₹3L annually)</option>
+                    <option value="lower-middle">Lower Middle Class (₹3-6L annually)</option>
+                    <option value="middle-class">Middle Class (₹6-15L annually)</option>
+                    <option value="upper-middle">Upper Middle Class (₹15-30L annually)</option>
+                    <option value="affluent">Affluent (₹30L+ annually)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="primaryLanguage">Primary Language *</label>
+                <select id="primaryLanguage" required>
+                    <option value="">Select Language</option>
+                    <option value="english">English</option>
+                    <option value="hinglish">Hinglish (Hindi + English)</option>
+                    <option value="hindi">Hindi</option>
+                    <option value="bengali">Bengali</option>
+                    <option value="marathi">Marathi</option>
+                    <option value="telugu">Telugu</option>
+                    <option value="tamil">Tamil</option>
+                    <option value="gujarati">Gujarati</option>
+                    <option value="punjabi">Punjabi</option>
+                    <option value="kannada">Kannada</option>
+                    <option value="malayalam">Malayalam</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="interests">Interests & Hobbies *</label>
+                <select id="interests" required>
+                    <option value="">Select a primary interest</option>
+                    <option value="technology-and-gadgets">Technology & Gadgets</option>
+                    <option value="entertainment-and-media">Entertainment (Movies, Music, OTT)</option>
+                    <option value="cricket-and-sports">Cricket & Sports</option>
+                    <option value="food-and-dining">Food & Dining</option>
+                    <option value="travel-and-tourism">Travel & Tourism</option>
+                    <option value="fashion-and-lifestyle">Fashion & Lifestyle</option>
+                    <option value="health-and-fitness">Health & Fitness</option>
+                    <option value="finance-and-investing">Finance & Investing</option>
+                    <option value="education-and-learning">Education & Learning</option>
+                    <option value="gaming">Gaming</option>
+                    <option value="home-and-decor">Home & Decor</option>
+                </select>
+            </div>
+            
+            
+            <div class="form-group full-width">
+                <button class="generate-btn" onclick="nextStep(3)">
+                    Next
+                </button>
+            </div>
+        </div>
+        
+        <!-- Step 3: Product & Budget -->
+        <div class="form-section" id="step3Form" style="display: none;">
+            <div class="form-group">
+                <label for="productName">Product/Service Name *</label>
+                <input type="text" id="productName" placeholder="e.g., EduTech App" required maxlength="100">
+            </div>
+            
+            <div class="form-group">
+                <label for="productCategory">Category *</label>
+                <select id="productCategory" required>
+                    <option value="">Select Category</option>
+                    <option value="saas">SaaS/Software</option>
+                    <option value="ecommerce">E-commerce</option>
+                    <option value="fintech">FinTech</option>
+                    <option value="edtech">EdTech</option>
+                    <option value="healthtech">HealthTech</option>
+                    <option value="foodtech">FoodTech</option>
+                    <option value="logistics">Logistics</option>
+                    <option value="service">Service Business</option>
+                    <option value="physical-product">Physical Product</option>
+                    <option value="consulting">Consulting</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="pricePoint">Price Point (₹) *</label>
+                <input type="number" id="pricePoint" placeholder="e.g. 499" required min="0" step="1">
+            </div>
+            
+            <div class="form-group full-width">
+                <label for="productDescription">Product Description *</label>
+                <textarea id="productDescription" placeholder="Describe your product/service, its features, and what makes it unique" required maxlength="500"></textarea>
+            </div>
+            
+            <div class="form-group full-width">
+                <label for="uniqueSellingProp">Unique Selling Proposition *</label>
+                <textarea id="uniqueSellingProp" placeholder="What makes your product different from competitors? Why should customers choose you?" required maxlength="300"></textarea>
+            </div>
+            
+            <div class="form-group full-width">
+                <button class="generate-btn" onclick="generateCampaign()" id="generateCampaignBtn">
+                    Generate
+                </button>
+            </div>
+        </div>
+        
+        <div id="campaignResults"></div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let campaignData = {};
+        let generatedCampaign = {};
+
+        function updateStep(step) {
+            for (let i = 1; i <= 3; i++) {
+                const form = document.getElementById(`step${i}Form`);
+                if (form) form.style.display = 'none';
+            }
+            
+            const currentForm = document.getElementById(`step${step}Form`);
+            if (currentForm) {
+                 // Change grid to block for form sections
+                 currentForm.style.display = 'grid';
+            }
+            
+            for (let i = 1; i <= 4; i++) {
+                const stepEl = document.getElementById(`step${i}`);
+                if (stepEl) {
+                    stepEl.classList.remove('active', 'completed');
+                    if (i < step) {
+                        stepEl.classList.add('completed');
+                    } else if (i === step) {
+                        stepEl.classList.add('active');
+                    }
+                }
+            }
+            
+            currentStep = step;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function nextStep(step) {
+            if (!validateCurrentStep()) {
+                return;
+            }
+            collectStepData();
+            updateStep(step);
+        }
+
+        function validateCurrentStep() {
+            const currentForm = document.getElementById(`step${currentStep}Form`);
+            const requiredFields = currentForm.querySelectorAll('[required]');
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.style.borderColor = '#dc2626';
+                    isValid = false;
+                } else {
+                    field.style.borderColor = '#e1e5e9';
+                }
+            });
+            
+            if (!isValid) {
+                showToast('Please fill in all required fields', 'error');
+            }
+            return isValid;
+        }
+
+        function collectStepData() {
+            // Step 1 data
+            campaignData.campaignName = document.getElementById('campaignName').value;
+            campaignData.campaignGoal = document.getElementById('campaignGoal').value;
+            campaignData.campaignDuration = document.getElementById('campaignDuration').value;
+            campaignData.campaignDescription = document.getElementById('campaignDescription').value;
+            campaignData.campaignBudget = document.getElementById('campaignBudget').value;
+            // Step 2 data
+            campaignData.ageRange = document.getElementById('ageRange').value;
+            campaignData.gender = document.getElementById('gender').value;
+            campaignData.location = document.getElementById('location').value;
+            campaignData.incomeLevel = document.getElementById('incomeLevel').value;
+            campaignData.primaryLanguage = document.getElementById('primaryLanguage').value;
+            campaignData.interests = document.getElementById('interests').value;
+            // Step 3 data
+            campaignData.productName = document.getElementById('productName').value;
+            campaignData.productCategory = document.getElementById('productCategory').value;
+            campaignData.productDescription = document.getElementById('productDescription').value;
+            campaignData.uniqueSellingProp = document.getElementById('uniqueSellingProp').value;
+            campaignData.pricePoint = document.getElementById('pricePoint').value;
+        }
+
+        function updateBudgetDisplay() {
+            const budget = document.getElementById('campaignBudget').value;
+            const display = document.getElementById('budgetDisplay');
+            display.textContent = `₹${parseInt(budget).toLocaleString('en-IN')}`;
+        }
+        
+        async function generateCampaign() {
+            if (!validateCurrentStep()) return;
+            collectStepData();
+            updateStep(4);
+            
+            const resultsContainer = document.getElementById('campaignResults');
+            resultsContainer.innerHTML = `
+                <div class="status-message loading">
+                    <div class="loading-spinner"></div>
+                    <p>Generating your comprehensive marketing campaign...</p>
+                    <p>Might take upto 5 minutes, please be patient.</p>
+                    <small id="loading-status" style="display: block; margin-top: 8px; opacity: 0.8;">This may take 60-90 seconds</small>
+                </div>
+            `;
+            const statusEl = document.getElementById('loading-status');
+            
+            try {
+                statusEl.textContent = 'Generating campaign strategy...';
+                await generateCampaignStrategy();
+                
+                statusEl.textContent = 'Creating content & pre-loading visual concepts...';
+                const imagePromises = await generateCampaignContent();
+                await Promise.all(imagePromises); // Wait for all images to load
+                
+                statusEl.textContent = 'Calculating AI-powered budget...';
+                generatedCampaign.budgetAllocation = await generateAIBudgetAllocation();
+                
+                statusEl.textContent = 'Building final report...';
+                displayCampaignResults();
+                showToast('Campaign generated successfully!', 'success');
+                
+            } catch (error) {
+                console.error('Error generating campaign:', error);
+                resultsContainer.innerHTML = `
+                    <div class="status-message error">
+                        <p>Error generating campaign: ${error.message}. Please try again.</p>
+                        <div class="retry-section"><button class="retry-btn" onclick="generateCampaign()">Retry Generation</button></div>
+                    </div>
+                `;
+            }
+        }
+
+        // --- NEW: Centralized AI Text Model Call ---
+        async function callAITextModel(prompt) {
+            const res = await fetch("https://api.z.ai/api/paas/v4/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer aba57205f9ae4c31b3fc38437a622663.kv5mgJtBBnrQqPgT`, // store key in env
+                    "Accept-Language": "en-US,en",
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    model: "glm-4.5-flash",
+                    messages: [
+                        {
+                        role: "user",
+                        content: prompt,
+                        },
+                    ],
+                }),
+            });
+
+            const data = await res.json();
+            const text = data?.choices?.[0]?.message?.content || "";
+
+            return {
+                ok: res.ok,
+                status: res.status,
+                async text() {
+                    return text;
+                },
+            };
+        }
+
+
+        async function generateCampaignStrategy() {
+            const strategyPrompt = `You are an expert marketing strategist for the Indian startup ecosystem. Based on the following details, generate a comprehensive marketing campaign strategy. Your response MUST be a valid JSON object, without any markdown formatting or surrounding text.
+
+**Campaign Details:** Campaign: ${campaignData.campaignName}, Goal: ${campaignData.campaignGoal}, Duration: ${campaignData.campaignDuration}, Details: ${campaignData.campaignDescription}, Budget: ₹${parseInt(campaignData.campaignBudget).toLocaleString('en-IN')}
+**Target Audience:** Age: ${campaignData.ageRange}, Gender: ${campaignData.gender}, Location: ${campaignData.location}, Income: ${campaignData.incomeLevel}, Interests: ${campaignData.interests}, Language: ${campaignData.primaryLanguage}
+**Product Details:** Product: ${campaignData.productName} (${campaignData.productCategory}), Price: ₹${parseInt(campaignData.pricePoint).toLocaleString('en-IN')}, Description: ${campaignData.productDescription}, **USP:** ${campaignData.uniqueSellingProp}
+
+**Required JSON Structure:**
+{
+  "campaignBigIdea": "A catchy, single-sentence concept for the campaign.",
+  "positioningStatement": "A brief statement on how the product should be perceived by the target audience in India.",
+  "keyMessages": ["Primary message about benefit.", "Secondary message addressing a pain point.", "Tertiary message about USP."],
+  "targetAudienceInsights": "Specific insights about the Indian target audience, considering their behaviors, media consumption, and cultural nuances.",
+  "successMetrics": [
+    { "metric": "Primary Metric (e.g., Conversions)", "kpi": "Specific KPI (e.g., Achieve 500 sales)" },
+    { "metric": "Secondary Metric (e.g., CPA)", "kpi": "Specific KPI (e.g., Keep CPA below ₹500)" },
+    { "metric": "Tertiary Metric (e.g., Engagement Rate)", "kpi": "Specific KPI (e.g., Achieve 5% engagement on Instagram)" }
+  ],
+  "culturalConsiderations": "Notes on India-specific cultural elements, festivals, or language to incorporate or avoid.",
+  "suggestedChannels": ["instagram", "google", "whatsapp", "influencer", "content"]
+}`;
+            generatedCampaign.strategy = await fetchAndParseWithRetry(strategyPrompt);
+        }
+
+        async function generateCampaignContent() {
+            const copyPrompt = `You are an expert copywriter for the Indian market. Generate marketing copy for ${campaignData.productName}. The copy should be culturally relevant and engaging. Your response MUST be a valid JSON object, with no markdown.
+            **Product Details:** - Product: ${campaignData.productName} (${campaignData.productCategory}), Description: ${campaignData.productDescription}, **USP:** ${campaignData.uniqueSellingProp}
+            **Target Audience:** Age: ${campaignData.ageRange}, Gender: ${campaignData.gender}, Location: ${campaignData.location}, Income: ${campaignData.incomeLevel}, Interests: ${campaignData.interests}, Language: ${campaignData.primaryLanguage}
+            **Campaign Details:** Campaign: ${campaignData.campaignName}, Goal: ${campaignData.campaignGoal}, Details: ${campaignData.campaignDescription}
+
+**Required JSON Structure (be precise):**
+{
+  "facebookAds": { "headlines": ["Headline 1 for FB/Insta"], "body": "A short, engaging ad copy for Facebook or Instagram feed." },
+  "googleAds": { "headlines": ["Short Headline 1 for Google"], "descriptions": ["Longer description for Google Ads."] },
+  "email": { "subjectLines": ["Catchy Email Subject 1"], "body": "Short version with hook: Engaging opening line followed by a strong CTA." },
+  "whatsappMessages": ["A concise and friendly WhatsApp broadcast message. (2-3 variants)"],
+  "linkedinPost": "A professional post for LinkedIn.",
+  "youtubeVideo": { "title": "A catchy YouTube video title", "scriptHook": "A 2-3 sentence script for the video's engaging opening." }
+}`;
+            generatedCampaign.adCopy = await fetchAndParseWithRetry(copyPrompt);
+
+            // Generate Visual Concepts
+            generatedCampaign.visuals = [];
+            const imagePromises = []; // Array to hold image loading promises
+            const visualConceptTitles = [
+                `Product Showcase for ${campaignData.productName}`,
+                `Lifestyle Ad for ${campaignData.campaignGoal}`
+            ];
+
+            for (const title of visualConceptTitles) {
+                const directionPrompt = `You are a creative director for an Indian ad agency. Provide a creative brief for a visual concept titled "${title}". Campaign: "${campaignData.productName}". Your response MUST be a valid JSON object, with no markdown.
+                { "title": "${title}", "description": "A brief 2-sentence description of the visual concept.", "mood": "Describe the overall feeling."}`;
+                const directionData = await fetchAndParseWithRetry(directionPrompt);
+
+                const imagePrompt = `cinematic photo, ${title}, for an Indian startup campaign for ${campaignData.productName}, ${directionData.mood}, professional, high detail`;
+                const seed = Math.floor(Math.random() * 1000000);
+                const negative_prompt = `Any text, low quality, blurry`;
+                const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(imagePrompt)}?width=800&height=600&seed=${seed}&model=Flux&negative_prompt=${encodeURIComponent(negative_prompt)}&nologo=true&safe=false`;
+
+                // --- NEW: Pre-load image ---
+                const preloadPromise = new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.src = imageUrl;
+                    img.onload = resolve;
+                    img.onerror = reject;
+                });
+                imagePromises.push(preloadPromise);
+                
+                generatedCampaign.visuals.push({ ...directionData, imageUrl });
+            }
+
+            generatedCampaign.timeline = generateTimeline();
+            return imagePromises; // Return the promises for preloading
+        }
+
+        async function generateAIBudgetAllocation() {
+            const budget = parseInt(campaignData.campaignBudget);
+            const channels = generatedCampaign.strategy.suggestedChannels;
+            
+            const budgetPrompt = `You are a marketing finance expert for Indian startups. Suggest a budget percentage allocation across these channels: ${channels.join(', ')}. Your response MUST be a valid JSON object where keys are channel names and values are percentage numbers. The sum MUST be 100.
+**Details:** Total Budget: ₹${budget.toLocaleString('en-IN')}, Goal: ${campaignData.campaignGoal}, Product Category: ${campaignData.productCategory}, Location: ${campaignData.location}
+**Required JSON Structure:** { "${channels.join('": percentage, "')}": percentage }`;
+            
+            try {
+                const percentages = await fetchAndParseWithRetry(budgetPrompt);
+                let totalPercentage = Object.values(percentages).reduce((sum, p) => sum + p, 0);
+                if (totalPercentage < 98 || totalPercentage > 102) throw new Error('AI budget percentages do not sum to 100.');
+                
+                const finalAllocation = {};
+                for (const channel in percentages) {
+                    if (channels.includes(channel)) {
+                        finalAllocation[channel] = (percentages[channel] / 100) * budget;
+                    }
+                }
+                return finalAllocation;
+            } catch (error) {
+                console.error("AI budget allocation failed, using fallback:", error);
+                showToast('AI budget allocation failed. Using standard model.', 'error');
+                return generateStaticBudgetAllocation(channels, budget);
+            }
+        }
+
+        function generateStaticBudgetAllocation(channels, totalBudget) {
+            const allocations = { facebook: 0.25, instagram: 0.20, google: 0.20, youtube: 0.15, linkedin: 0.10, whatsapp: 0.05, email: 0.03, content: 0.07, influencer: 0.12, seo: 0.05, telegram: 0.02, offline: 0.08 };
+            const selectedAllocations = {};
+            let totalPercentage = 0;
+            channels.forEach(channel => {
+                selectedAllocations[channel] = allocations[channel] || 0.1;
+                totalPercentage += selectedAllocations[channel];
+            });
+            Object.keys(selectedAllocations).forEach(channel => {
+                selectedAllocations[channel] = (selectedAllocations[channel] / totalPercentage) * totalBudget;
+            });
+            return selectedAllocations;
+        }
+
+        function generateTimeline() {
+            const durationMap = {
+                '1-week': [{ phase: 'Setup & Launch', duration: 2 }, { phase: 'Active Campaign', duration: 4 }, { phase: 'Optimization', duration: 1 }],
+                '1-month': [{ phase: 'Setup & Launch', duration: 5 }, { phase: 'Active Campaign', duration: 20 }, { phase: 'Optimization', duration: 5 }],
+                '3-months': [{ phase: 'Phase 1: Launch', duration: 30 }, { phase: 'Phase 2: Scale', duration: 30 }, { phase: 'Phase 3: Optimize', duration: 30 }],
+                '6-months': [{ phase: 'Q1: Foundation', duration: 45 }, { phase: 'Q2: Growth', duration: 45 }, { phase: 'Q3: Scale', duration: 45 }, { phase: 'Q4: Optimize', duration: 45 }]
+            };
+            return durationMap[campaignData.campaignDuration] || [];
+        }
+
+        async function fetchAndParseWithRetry(prompt, retries = 3, delay = 1000) {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await callAITextModel(prompt);
+                    if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
+                    const aiResponseText = await response.text();
+                    return cleanAndParseJson(aiResponseText);
+                } catch (error) {
+                    console.error(`Attempt ${i + 1} failed: ${error.message}`);
+                    if (i === retries - 1) throw new Error("AI failed to provide a valid response after multiple retries.");
+                    await new Promise(res => setTimeout(res, delay));
+                }
+            }
+        }
+
+        function cleanAndParseJson(aiResponseText){
+            let text = aiResponseText.trim();
+            const startIndex = text.indexOf('{');
+            const endIndex = text.lastIndexOf('}');
+            if (startIndex === -1 || endIndex === -1) throw new Error("No JSON object found in AI response.");
+            text = text.substring(startIndex, endIndex + 1);
+            text = text.replace(/,\s*([\]}])/g, '$1');
+            return JSON.parse(text);
+        }
+
+        // --- NEW: Helper to get display text from a select dropdown ---
+        function getSelectDisplayText(selectId) {
+            const select = document.getElementById(selectId);
+            if (select && select.selectedIndex >= 0) {
+                return select.options[select.selectedIndex].text;
+            }
+            return 'N/A';
+        }
+
+        function displayCampaignResults() {
+            const container = document.getElementById('campaignResults');
+            const renderList = (items) => items ? items.map(item => `<li>${item}</li>`).join('') : '';
+            const channelNames = { facebook: 'Facebook', instagram: 'Instagram', google: 'Google Ads', youtube: 'YouTube', linkedin: 'LinkedIn', whatsapp: 'WhatsApp', email: 'Email', content: 'Content Marketing', influencer: 'Influencer Marketing', seo: 'SEO', telegram: 'Telegram', offline: 'Offline Events' };
+
+            container.innerHTML = `
+                <div class="campaign-dashboard">
+                    <!-- NEW: Section to display all user inputs -->
+                    <div class="dashboard-section">
+                        <div class="section-header"><span class="section-icon">📝</span><h3>Your Campaign Inputs</h3></div>
+                        <div class="content-grid">
+                            <div class="content-card"><h4>Campaign Basics</h4><p><strong>Name:</strong> ${campaignData.campaignName}</p><p><strong>Goal:</strong> ${getSelectDisplayText('campaignGoal')}</p><p><strong>Duration:</strong> ${getSelectDisplayText('campaignDuration')}</p><p><strong>Budget:</strong> ₹${parseInt(campaignData.campaignBudget).toLocaleString('en-IN')}</p>${campaignData.campaignDescription ? `<p><strong>Description:</strong> ${campaignData.campaignDescription}</p>` : ''}</div>
+                            <div class="content-card"><h4>Target Audience</h4><p><strong>Age:</strong> ${getSelectDisplayText('ageRange')}</p><p><strong>Gender:</strong> ${getSelectDisplayText('gender')}</p><p><strong>Location:</strong> ${getSelectDisplayText('location')}</p><p><strong>Income:</strong> ${getSelectDisplayText('incomeLevel')}</p><p><strong>Language:</strong> ${getSelectDisplayText('primaryLanguage')}</p>${campaignData.interests ? `<p><strong>Interests:</strong> ${campaignData.interests}</p>` : ''}</div>
+                            <div class="content-card"><h4>Product & Budget</h4><p><strong>Name:</strong> ${campaignData.productName}</p><p><strong>Category:</strong> ${getSelectDisplayText('productCategory')}</p><p><strong>Price:</strong> ₹${parseInt(campaignData.pricePoint).toLocaleString('en-IN')}</p><p><strong>Description:</strong> ${campaignData.productDescription}</p><p><strong>USP:</strong> ${campaignData.uniqueSellingProp}</p></div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-section">
+                        <div class="section-header"><span class="section-icon">🎯</span><h3>Campaign Strategy Overview</h3></div>
+                        <div class="content-card" style="margin-bottom: 20px;"><h4>Big Idea</h4><p>${generatedCampaign.strategy.campaignBigIdea}</p></div>
+                        <div class="content-card" style="margin-bottom: 20px;"><h4>Positioning Statement</h4><p>${generatedCampaign.strategy.positioningStatement}</p></div>
+                        <div class="content-grid">
+                            <div class="content-card"><h4>Key Messages</h4><ul>${renderList(generatedCampaign.strategy.keyMessages)}</ul></div>
+                            <div class="content-card"><h4>Target Audience Insights</h4><p>${generatedCampaign.strategy.targetAudienceInsights}</p></div>
+                            <div class="content-card"><h4>Cultural Considerations</h4><p>${generatedCampaign.strategy.culturalConsiderations}</p></div>
+                        </div>
+                    </div>
+                    <div class="dashboard-section">
+                        <div class="section-header"><span class="section-icon">✍️</span><h3>Marketing Copy & Content</h3></div>
+                        <div class="content-grid">
+                            <div class="content-card"><h4>Facebook / Instagram Ads</h4><p><strong>Headlines:</strong></p><ul>${renderList(generatedCampaign.adCopy.facebookAds.headlines)}</ul><p style="margin-top:12px;"><strong>Body Copy:</strong></p><p>${generatedCampaign.adCopy.facebookAds.body}</p></div>
+                            <div class="content-card"><h4>Google Ads</h4><p><strong>Headlines:</strong></p><ul>${renderList(generatedCampaign.adCopy.googleAds.headlines)}</ul><p style="margin-top:12px;"><strong>Descriptions:</strong></p><ul>${renderList(generatedCampaign.adCopy.googleAds.descriptions)}</ul></div>
+                            <div class="content-card"><h4>Email Marketing</h4><p><strong>Subject Lines:</strong></p><ul>${renderList(generatedCampaign.adCopy.email.subjectLines)}</ul><p style="margin-top:12px;"><strong>Body:</strong></p><p style="white-space: pre-wrap;">${generatedCampaign.adCopy.email.body}</p></div>
+                            <div class="content-card"><h4>WhatsApp Messages</h4><ul>${renderList(generatedCampaign.adCopy.whatsappMessages)}</ul></div>
+                            <div class="content-card"><h4>YouTube Video Idea</h4><p><strong>Title:</strong> ${generatedCampaign.adCopy.youtubeVideo.title}</p><p style="margin-top:12px;"><strong>Script Hook (First 15s):</strong></p><p>${generatedCampaign.adCopy.youtubeVideo.scriptHook}</p></div>
+                            <div class="content-card full-width"><h4>LinkedIn Post</h4><p style="white-space: pre-wrap;">${generatedCampaign.adCopy.linkedinPost}</p></div>
+                        </div>
+                    </div>
+                    <div class="dashboard-section">
+                        <div class="section-header"><span class="section-icon">🎨</span><h3>Creative Concepts</h3></div>
+                        <div class="visual-concept-grid">
+                            ${generatedCampaign.visuals.map(concept => `
+                                <div class="visual-concept-card">
+                                    <img src="${concept.imageUrl}" alt="${concept.title}">
+                                    <div class="visual-concept-details"><h5>${concept.title}</h5><p>${concept.description}</p><p><strong>Mood:</strong> ${concept.mood}</p></div>
+                                </div>`).join('')}
+                        </div>
+                    </div>
+                    <div class="dashboard-section">
+                        <div class="section-header"><span class="section-icon">📊</span><h3>AI-Suggested Budget Allocation</h3></div>
+                        <div class="chart-container"><canvas id="budgetChart"></canvas></div>
+                        <!-- NEW: Budget Table -->
+                        <table class="budget-table">
+                            <thead><tr><th>Platform</th><th>Allocated Budget</th></tr></thead>
+                            <tbody>
+                                ${Object.entries(generatedCampaign.budgetAllocation).map(([key, value]) => `
+                                    <tr>
+                                        <td>${channelNames[key] || key.charAt(0).toUpperCase() + key.slice(1)}</td>
+                                        <td>₹${Math.round(value).toLocaleString('en-IN')}</td>
+                                    </tr>`).join('')}
+                                <tr>
+                                    <td><strong>Total</strong></td>
+                                    <td><strong>₹${Math.round(Object.values(generatedCampaign.budgetAllocation).reduce((s, a) => s + a, 0)).toLocaleString('en-IN')}</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="dashboard-section">
+                        <div class="section-header"><span class="section-icon">📅</span><h3>Campaign Timeline</h3></div>
+                        <div class="chart-container chart-small"><canvas id="timelineChart"></canvas></div>
+                    </div>
+                    <div class="dashboard-section">
+                        <div class="section-header"><span class="section-icon">📈</span><h3>Key Performance Indicators (KPIs)</h3></div>
+                        <div class="content-grid">
+                            ${generatedCampaign.strategy.successMetrics.map(metric => `
+                                <div class="content-card">
+                                    <h4>${metric.metric}</h4>
+                                    <p style="font-size: 24px; font-weight: 700; color: #693ab7;">${metric.kpi}</p>
+                                </div>`).join('')}
+                        </div>
+                    </div>
+                    <div class="retry-section">
+                        <button class="clear-btn" onclick="startOver()">Start Over</button>
+                        <!-- NEW: Print Button -->
+                        <button class="action-btn" onclick="window.print()">Save/Print</button>
+                    </div>
+                </div>
+            `;
+
+            setTimeout(() => {
+                createBudgetChart();
+                createTimelineChart();
+            }, 100);
+        }
+
+        function createBudgetChart() {
+            const ctx = document.getElementById('budgetChart').getContext('2d');
+            const allocation = generatedCampaign.budgetAllocation;
+            const channelNames = { facebook: 'Facebook', instagram: 'Instagram', google: 'Google Ads', youtube: 'YouTube', linkedin: 'LinkedIn', whatsapp: 'WhatsApp', email: 'Email', content: 'Content', influencer: 'Influencer', seo: 'SEO', telegram: 'Telegram', offline: 'Offline' };
+            
+            Chart.register(ChartDataLabels);
+            const totalBudget = Object.values(allocation).reduce((sum, value) => sum + value, 0);
+
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(allocation).map(key => channelNames[key] || key.charAt(0).toUpperCase() + key.slice(1)),
+                    datasets: [{
+                        data: Object.values(allocation),
+                        backgroundColor: ['#693ab7', '#da3d72', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ef4444', '#06b6d4']
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: { callbacks: { label: (context) => `₹${Math.round(context.parsed).toLocaleString('en-IN')}` } },
+                        datalabels: {
+                            formatter: (value, ctx) => {
+                                if (totalBudget === 0) return '0%';
+                                const percentage = ((value / totalBudget) * 100).toFixed(0) + '%';
+                                return (value / totalBudget) > 0.05 ? percentage : '';
+                            },
+                            color: '#fff', font: { weight: 'bold', size: 14 }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createTimelineChart() {
+            const ctx = document.getElementById('timelineChart').getContext('2d');
+            const timeline = generatedCampaign.timeline;
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: timeline.map(phase => phase.phase),
+                    datasets: [{
+                        label: 'Duration (days)',
+                        data: timeline.map(phase => phase.duration),
+                        backgroundColor: '#693ab7'
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true } } }
+            });
+        }
+
+        function startOver() {
+            if (window.confirm('Are you sure you want to start over? This will clear all current progress.')) {
+                document.querySelectorAll('input, select, textarea').forEach(el => {
+                    if (el.type === 'checkbox') el.checked = false;
+                    else if (el.tagName === 'SELECT') el.selectedIndex = 0;
+                    else el.value = '';
+                });
+                document.getElementById('campaignBudget').value = 50000;
+                updateBudgetDisplay();
+                document.getElementById('campaignResults').innerHTML = '';
+                campaignData = {};
+                generatedCampaign = {};
+                Object.keys(localStorage).forEach(key => key.startsWith('campaign_') && localStorage.removeItem(key));
+                updateStep(1);
+                showToast('Started fresh!', 'success');
+            }
+        }
+
+        function showToast(message, type) {
+            const existingToast = document.querySelector('.toast');
+            if (existingToast) existingToast.remove();
+            
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const formInputs = document.querySelectorAll('input, select, textarea');
+            formInputs.forEach(input => {
+                input.addEventListener('change', () => localStorage.setItem(`campaign_${input.id}`, input.value));
+                const savedValue = localStorage.getItem(`campaign_${input.id}`);
+                if (savedValue) input.value = savedValue;
+            });
+            updateBudgetDisplay();
+
+            document.querySelectorAll('textarea, input[maxlength]').forEach(input => {
+                const maxLength = input.getAttribute('maxlength');
+                const counter = document.createElement('small');
+                counter.style.cssText = 'color: #666; float: right; margin-top: 4px;';
+                input.parentNode.appendChild(counter);
+                
+                const updateCounter = () => {
+                    const length = input.value.length;
+                    counter.textContent = `${length}/${maxLength}`;
+                    counter.style.color = length > maxLength * 0.9 ? '#dc2626' : '#666';
+                };
+                input.addEventListener('input', updateCounter);
+                updateCounter();
+            });
+
+            document.getElementById('location')?.addEventListener('change', function() {
+                const tips = {
+                    'tier1-metros': 'Higher costs but better conversion rates. Good for premium products.',
+                    'tier2-cities': 'Growing market with good digital adoption. Cost-effective targeting.',
+                    'tier3-towns': 'Lower costs but may need vernacular content. Consider mobile-first approach.',
+                    'pan-india': 'Broad reach but requires diverse messaging for different regions.'
+                };
+                if (tips[this.value]) showToast(tips[this.value], 'success');
+            });
+        });
+    </script>
+</body>
+</html>
