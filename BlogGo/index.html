@@ -725,7 +725,7 @@
             </div>
         </div>
         
-        <button class="generate-btn" onclick="getSuggestions()">
+        <button class="generate-btn" id="getSuggestionsBtn" onclick="getSuggestions()">
             Get Topic Suggestions
         </button>
         
@@ -756,9 +756,6 @@
 
         async function getSuggestions() {
 
-            document.getElementById('info-card').style.display = 'none';
-            document.getElementById('setupForm').style.display = 'none';
-
             const mainTopic = document.getElementById('mainTopic').value.trim();
             const blogTone = document.getElementById('blogTone').value;
             const contentLength = document.getElementById('contentLength').value;
@@ -771,6 +768,10 @@
                 return;
             }
             
+
+            document.getElementById('info-card').style.display = 'none';
+            document.getElementById('setupForm').style.display = 'none';
+
             const resultContainer = document.getElementById('resultContainer');
             const suggestionsContainer = document.getElementById('suggestionsContainer');
             
@@ -784,7 +785,8 @@
             `;
             
             try {
-                event.target.style.display = 'none';
+                
+                document.getElementById('getSuggestionsBtn').style.display = 'none';
                 const contentType = document.getElementById('contentType').value || 'how-to';
                 const seoFocus = document.getElementById('seoFocus').value || 'high-traffic';
                 const specificKeywords = document.getElementById('specificKeywords').value;
@@ -907,7 +909,7 @@ IMPORTANT: Respond ONLY with a valid JSON array of objects. Do not include any o
                     </div>
                     <div style="text-align: center; margin-top: 24px;">
                         <button class="generate-btn" onclick="generateBlog()" id="generateBlogBtn" style="opacity: 0.5; cursor: not-allowed;" disabled>
-                            Generate Blog Post
+                            Generate Blog
                         </button>
                     </div>
                 </div>
@@ -1460,7 +1462,11 @@ function debugPDFContent() {
                     element.value = '';
                     element.selectedIndex = 0;
                 });
-                
+                document.getElementById('info-card').style.display = '';
+                document.getElementById('setupForm').style.display = '';
+                document.getElementById('suggestionsContainer').style.display = '';
+                document.getElementById('getSuggestionsBtn').style.display = '';
+                document.getElementById('generateBlogBtn').style.display = '';
                 // Clear containers
                 document.getElementById('suggestionsContainer').innerHTML = '';
                 document.getElementById('resultContainer').innerHTML = '';
