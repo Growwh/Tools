@@ -621,7 +621,7 @@
             </div>
         </div>
         
-        <div class="info-card">
+        <div class="info-card" id="info-card">
             <div class="info-content">
                 <strong>Pro SEO Tips:</strong> Choose specific, long-tail keywords for better ranking potential. The tool will suggest SEO-optimized topics and generate content with proper heading structure, meta descriptions, and keyword density for maximum search visibility.
             </div>
@@ -755,6 +755,9 @@
         }
 
         async function getSuggestions() {
+
+            document.getElementById('info-card').style.display = 'none';
+            document.getElementById('setupForm').style.display = 'none';
 
             const mainTopic = document.getElementById('mainTopic').value.trim();
             const blogTone = document.getElementById('blogTone').value;
@@ -937,7 +940,7 @@ IMPORTANT: Respond ONLY with a valid JSON array of objects. Do not include any o
                 showToast('Please select a topic first', 'error');
                 return;
             }
-
+            document.getElementById('suggestionsContainer').style.display = 'none';
             document.getElementById('generateBlogBtn').style.display = 'none';
             
             const resultContainer = document.getElementById('resultContainer');
