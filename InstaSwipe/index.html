@@ -898,7 +898,7 @@
         async function callTextAPI(prompt, retries = 3) {
             for (let attempt = 1; attempt <= retries; attempt++) {
                 try {
-                    const encodedPrompt = encodeURIComponent(prompt);
+                    const encodedPrompt = prompt;
                     const response = await fetch("https://api.z.ai/api/paas/v4/chat/completions", {
                         method: "POST",
                         headers: {
