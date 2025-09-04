@@ -1,0 +1,1471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Carousel Generator</title>
+    <!-- REMOVED jspdf script -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+            color: #270A47;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #270a47, #693ab7, #da3d72);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+        
+        /* TEMPLATE SELECTION appears after generation via JS */
+        .template-selection {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .template-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #270A47;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .template-option {
+            background: white;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
+        }
+        
+        .template-option:hover {
+            border-color: #693AB7;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+        }
+        
+        .template-option.selected {
+            border-color: #693AB7;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+        }
+        
+        .template-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        
+        .template-name {
+            font-weight: 600;
+            color: #270A47;
+            margin-bottom: 4px;
+        }
+        
+        .template-desc {
+            font-size: 12px;
+            color: #718096;
+        }
+        
+        .form-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .form-group {
+            position: relative;
+        }
+        
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #270A47;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: inherit;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #fafbfc;
+            color: #270a47;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #693ab7;
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.08);
+            transform: translateY(-1px);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+        }
+        
+        .generate-btn {
+            width: 100%;
+            background: #693ab7;
+            color: white;
+            border: none;
+            padding: 20px;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 32px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .generate-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .generate-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .info-card {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 32px;
+            position: relative;
+        }
+        
+        .info-card::before {
+            content: "💡";
+            font-size: 24px;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+        
+        .info-card .info-content {
+            margin-left: 40px;
+            color: #270a47;
+            font-weight: 500;
+        }
+        
+        .status-message {
+            text-align: center;
+            padding: 40px;
+            border-radius: 16px;
+            margin: 24px 0;
+            font-weight: 600;
+        }
+        
+        .loading {
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            color: #64748b;
+        }
+        
+        .error {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: #dc2626;
+            border: 2px solid #f87171;
+        }
+        
+        .success {
+            background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+            color: #16a34a;
+            border: 2px solid #4ade80;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(100, 116, 139, 0.2);
+            border-top: 3px solid #64748b;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .carousel-container {
+            margin-top: 40px;
+        }
+        
+        .carousel-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        
+        .carousel-header h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #270a47;
+            margin-bottom: 8px;
+        }
+        
+        .carousel-slides {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+        
+        .carousel-slide {
+            width: 400px;
+            height: 400px;
+            background: #ffffff;
+            color: #270a47;
+            padding: 40px;
+            /* REMOVED border-radius */
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            margin: 0 auto;
+            overflow: hidden;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .slide-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            object-fit: cover;
+            opacity: 0.85;
+            z-index: 1;
+        }
+        
+        .slide-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(0,0,0,0.5), rgba(0,0,0,0.8));
+            z-index: 2;
+            transition: background 0.3s ease; /* Smooth transition when changing themes */
+        }
+
+                /* Vibrant Theme Overlay on the first slide */
+        .first-slide.template-vibrant .slide-overlay {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.6), rgba(118, 75, 162, 0.8));
+        }
+
+        /* Nature Theme Overlay on the first slide */
+        .first-slide.template-nature .slide-overlay {
+            background: linear-gradient(135deg, rgba(45, 80, 22, 0.6), rgba(74, 124, 89, 0.8));
+        }
+
+        /* Sunset Theme Overlay on the first slide */
+        .first-slide.template-sunset .slide-overlay {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.6), rgba(254, 202, 87, 0.8));
+        }
+
+        /* Modern Theme Overlay on the first slide */
+        .first-slide.template-modern .slide-overlay {
+            background: linear-gradient(135deg, rgba(30, 60, 114, 0.6), rgba(42, 82, 152, 0.8));
+        }
+        
+        .slide-number {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #270a47;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            z-index: 3;
+        }
+        
+        .slide-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            z-index: 3;
+            position: relative;
+        }
+        
+        .slide-title {
+            font-size: 26px;
+            font-weight: 800;
+            margin-bottom: 24px;
+            line-height: 1.2;
+            color: #270a47;
+        }
+        
+        .slide-text {
+            font-size: 16px;
+            line-height: 1.6;
+            font-weight: 400;
+            color: #270a47;
+        }
+        
+        .slide-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 2px solid rgba(255, 255, 255, 0.3);
+            z-index: 3;
+            position: relative;
+        }
+        
+        .slide-username {
+            font-size: 14px;
+            font-weight: 600;
+            color: #270a47;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .slide-logo {
+            font-size: 10px;
+            color: #9daabd;
+        }
+
+        /* UPDATED instagram-icon styles for IMG tag */
+        .instagram-icon {
+            width: 18px;
+            height: 18px;
+        }
+        
+        /* Template-specific styles */
+        .template-minimal .slide-title {
+            color: #270A47;
+            font-size: 28px;
+        }
+        
+        .template-vibrant {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+        
+        .template-vibrant .slide-title,
+        .template-vibrant .slide-text,
+        .template-vibrant .slide-username {
+            color: white;
+        }
+        
+        .template-vibrant .slide-footer {
+            border-top-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .template-nature {
+            background: linear-gradient(135deg, #2d5016, #4a7c59);
+        }
+        
+        .template-nature .slide-title,
+        .template-nature .slide-text,
+        .template-nature .slide-username {
+            color: white;
+        }
+        
+        .template-sunset {
+            background: linear-gradient(135deg, #ff6b6b, #feca57);
+        }
+        
+        .template-sunset .slide-title,
+        .template-sunset .slide-text,
+        .template-sunset .slide-username {
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .template-sunset .slide-logo {
+            color: #dadee3;
+        }
+
+        .template-modern {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+        }
+        
+        .template-modern .slide-title,
+        .template-modern .slide-text,
+        .template-modern .slide-username {
+            color: white;
+        }
+        
+        .carousel-slide.first-slide {
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        
+        .carousel-slide.first-slide .slide-title {
+            font-size: 32px;
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .carousel-slide.first-slide .slide-text {
+            text-align: center;
+            font-size: 18px;
+            font-weight: 500;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        .carousel-slide.first-slide .slide-username {
+            color: white;
+        }
+
+        .caption-section {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 24px;
+            margin: 32px 0;
+        }
+        
+        .caption-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #270A47;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .caption-title::before {
+            content: "✍️";
+            font-size: 20px;
+        }
+        
+        .caption-text {
+            font-size: 15px;
+            line-height: 1.7;
+            color: #475569;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            white-space: pre-wrap;
+        }
+        
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 32px;
+        }
+        
+        .action-btn {
+            background: linear-gradient(135deg, #693AB7, #270A47);
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .action-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .action-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .toast {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            z-index: 1000;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            transform: translateX(400px);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+        }
+        
+        .toast.success {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+        
+        .toast.error {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
+            
+            .container {
+                padding: 24px 20px;
+                border-radius: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .form-section {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .template-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+            
+            .carousel-slides {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .carousel-slide {
+                width: 100%;
+                max-width: 380px;
+                height: 380px;
+                padding: 32px 24px;
+            }
+            
+            .slide-title {
+                font-size: 22px;
+                margin-bottom: 20px;
+            }
+            
+            .slide-text {
+                font-size: 15px;
+            }
+            
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px 16px;
+            }
+            
+            .header h1 {
+                font-size: 1.9rem;
+            }
+            
+            .carousel-slide {
+                height: 350px;
+                padding: 28px 20px;
+            }
+            
+            .slide-title {
+                font-size: 20px;
+            }
+            
+            .slide-text {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📸 Instagram Carousel Generator</h1>
+            <p>Create stunning Instagram carousels with AI-generated content and beautiful visuals</p>
+        </div>
+        
+        <div class="info-card">
+            <div class="info-content">
+                <strong>Pro Tip:</strong> Choose engaging topics with actionable insights. The first slide will have an AI-generated background image that matches your content theme.
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <div class="form-group">
+                <label for="topic">📝 Topic/Theme *</label>
+                <input type="text" id="topic" placeholder="e.g., 5 Self-Care Tips for Busy Professionals" required maxlength="100">
+            </div>
+            
+            <div class="form-group">
+                <label for="tone">🎭 Content Tone *</label>
+                <select id="tone" required>
+                    <option value="">Select Tone</option>
+                    <option value="inspirational">Inspirational</option>
+                    <option value="educational">Educational</option>
+                    <option value="casual">Casual & Friendly</option>
+                    <option value="motivational">Motivational</option>
+                    <option value="lifestyle">Lifestyle</option>
+                    <option value="wellness">Health & Wellness</option>
+                    <option value="business">Business Tips</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="category">🎯 Category *</label>
+                <select id="category" required>
+                    <option value="">Select Category</option>
+                    <option value="lifestyle">Lifestyle</option>
+                    <option value="fitness">Fitness & Health</option>
+                    <option value="business">Business & Career</option>
+                    <option value="travel">Travel</option>
+                    <option value="food">Food & Cooking</option>
+                    <option value="fashion">Fashion & Beauty</option>
+                    <option value="motivation">Motivation</option>
+                    <option value="education">Education</option>
+                    <option value="technology">Technology</option>
+                    <option value="art">Art & Creativity</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="username">👤 Instagram Handle *</label>
+                <input type="text" id="username" placeholder="@yourhandle" required maxlength="30">
+            </div>
+            
+            <div class="form-group">
+                <label for="slides">📑 Number of Slides *</label>
+                <select id="slides" required>
+                    <option value="3">3 Slides</option>
+                    <option value="4" selected>4 Slides</option>
+                    <option value="5">5 Slides</option>
+                    <option value="6">6 Slides</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="audience">🎯 Target Audience</label>
+                <input type="text" id="audience" placeholder="e.g., Young professionals, Fitness enthusiasts" maxlength="100">
+            </div>
+            
+            <div class="form-group full-width">
+                <label for="keyPoints">🔑 Key Points to Include (Optional)</label>
+                <textarea id="keyPoints" placeholder="• Specific tips or advice&#10;• Personal experiences&#10;• Statistics or facts&#10;• Any other key information..." maxlength="500"></textarea>
+            </div>
+        </div>
+        
+        <button class="generate-btn" onclick="generateCarousel()">
+            Generate
+        </button>
+        
+        <!-- SECTION for choosing template style. Appears AFTER generation. -->
+        <div class="template-selection" style="display: none;">
+            <div class="template-title">Choose Your Template Style</div>
+            <div class="template-grid">
+                <div class="template-option" data-template="minimal">
+                    <div class="template-icon">🤍</div>
+                    <div class="template-name">Minimal</div>
+                    <div class="template-desc">Clean & Simple</div>
+                </div>
+                <div class="template-option" data-template="vibrant">
+                    <div class="template-icon">🌈</div>
+                    <div class="template-name">Vibrant</div>
+                    <div class="template-desc">Bold & Colorful</div>
+                </div>
+                <div class="template-option" data-template="nature">
+                    <div class="template-icon">🌿</div>
+                    <div class="template-name">Nature</div>
+                    <div class="template-desc">Earth Tones</div>
+                </div>
+                <div class="template-option" data-template="sunset">
+                    <div class="template-icon">🌅</div>
+                    <div class="template-name">Sunset</div>
+                    <div class="template-desc">Warm & Inviting</div>
+                </div>
+                <div class="template-option" data-template="modern">
+                    <div class="template-icon">💎</div>
+                    <div class="template-name">Modern</div>
+                    <div class="template-desc">Professional</div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="resultContainer"></div>
+
+    </div>
+    
+    <script>
+        const generateBtn = document.querySelector('.generate-btn');
+        let currentCarouselData = null;
+        let selectedTemplate = null;
+        let isGenerating = false;
+        
+        // Template selection with live update functionality
+        function setupTemplateListeners() {
+            document.querySelectorAll('.template-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    // Update visual state and global variable
+                    document.querySelectorAll('.template-option').forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                    const newTemplate = this.dataset.template;
+                    selectedTemplate = newTemplate;
+                    localStorage.setItem('carousel_template', newTemplate);
+
+                    // If a carousel is already on the page, update its style without regenerating
+                    if (currentCarouselData) {
+                        const slides = document.querySelectorAll('.carousel-slide');
+                        slides.forEach(slide => {
+                            // Remove any existing template-* class and add the new one
+                            slide.className = slide.className.replace(/\btemplate-\S+/g, '').trim();
+                            slide.classList.add(`template-${newTemplate}`);
+                        });
+                    }
+                });
+            });
+        }
+        
+        // Initial setup of template listeners
+        setupTemplateListeners();
+
+        
+        // Input validation and formatting
+        document.getElementById('username').addEventListener('input', function() {
+            let value = this.value.trim();
+            if (value && !value.startsWith('@')) {
+                this.value = '@' + value.replace(/^@+/, '');
+            }
+        });
+        
+        // Character counters for inputs
+        const inputsWithLimits = ['topic', 'username', 'audience', 'keyPoints'];
+        inputsWithLimits.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener('input', function() {
+                    const maxLength = this.getAttribute('maxlength');
+                    if (maxLength && this.value.length > maxLength) {
+                        this.value = this.value.substring(0, maxLength);
+                    }
+                });
+            }
+        });
+        
+        function showToast(message, type = 'success') {
+            document.querySelectorAll('.toast').forEach(toast => toast.remove());
+            
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 100);
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+        
+        function showStatus(type, title, message, showRetry = false) {
+            const resultContainer = document.getElementById('resultContainer');
+            
+            let content = `
+                <div class="status-message ${type}">
+                    <div style="font-size: 48px; margin-bottom: 16px;">
+                        ${type === 'loading' ? '⏳' : type === 'error' ? '❌' : '✅'}
+                    </div>
+                    <div style="font-size: 20px; margin-bottom: 8px;">${title}</div>
+                    <div style="font-size: 16px; opacity: 0.8;">${message}</div>
+            `;
+            
+            if (type === 'loading') {
+                content += '<div class="loading-spinner"></div>';
+            }
+            
+            if (showRetry) {
+                content += `
+                    <div class="retry-section">
+                        <button class="retry-btn" onclick="generateCarousel()">🔄 Try Again</button>
+                        <button class="clear-btn" onclick="clearResults()">🧹 Start Over</button>
+                    </div>
+                `;
+            }
+            
+            content += '</div>';
+            resultContainer.innerHTML = content;
+        }
+        
+        function clearResults() {
+            document.getElementById('resultContainer').innerHTML = '';
+            document.querySelector('.template-selection').style.display = 'none';
+            generateBtn.style.display = 'block';
+            currentCarouselData = null;
+            
+            // Reset form
+            document.getElementById('topic').value = '';
+            document.getElementById('tone').value = '';
+            document.getElementById('category').value = '';
+            document.getElementById('username').value = '';
+            document.getElementById('slides').value = '5';
+            document.getElementById('audience').value = '';
+            document.getElementById('keyPoints').value = '';
+            
+            // Reset template selection
+            document.querySelectorAll('.template-option').forEach(opt => opt.classList.remove('selected'));
+            selectedTemplate = null;
+            
+            showToast('Ready to create a new carousel.', 'success');
+        }
+        
+        async function callTextAPI(prompt, retries = 3) {
+            for (let attempt = 1; attempt <= retries; attempt++) {
+                try {
+                    const encodedPrompt = encodeURIComponent(prompt);
+                    const response = await fetch("https://api.z.ai/api/paas/v4/chat/completions", {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `Bearer aba57205f9ae4c31b3fc38437a622663.kv5mgJtBBnrQqPgT`, // store key in env
+                            "Accept-Language": "en-US,en",
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            model: "glm-4.5-flash",
+                            messages: [
+                                {
+                                role: "user",
+                                content: encodedPrompt,
+                                },
+                            ],
+                        }),
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`API responded with status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+
+                    const text = data?.choices?.[0]?.message?.content || "";
+                    return text.trim();
+                    
+                } catch (error) {
+                    console.error(`API attempt ${attempt} failed:`, error);
+                    
+                    if (attempt === retries) {
+                        throw new Error(`Failed after ${retries} attempts: ${error.message}`);
+                    }
+                    
+                    await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+                }
+            }
+        }
+        
+        async function generateImagePrompt(topic, category) {
+            const categoryPrompts = {
+                lifestyle: "modern lifestyle, minimalist aesthetic, soft lighting",
+                fitness: "fitness motivation, gym equipment, healthy lifestyle",
+                business: "professional workspace, modern office, success",
+                travel: "beautiful destination, adventure, wanderlust",
+                food: "delicious food photography, ingredients, cooking",
+                fashion: "fashion photography, style, trendy outfit",
+                motivation: "inspiration, success, achievement, goals",
+                education: "learning, books, knowledge, growth",
+                technology: "modern tech, innovation, digital lifestyle",
+                art: "creative workspace, art supplies, artistic expression"
+            };
+            
+            const basePrompt = categoryPrompts[category] || "modern aesthetic, professional photography";
+            return `${topic}, ${basePrompt}, high quality, instagram style, 4k, beautiful composition`;
+        }
+        
+        async function generateCarousel() {
+            if (isGenerating) {
+                showToast('Generation already in progress. Please wait...', 'error');
+                return;
+            }
+            
+            const topic = document.getElementById('topic').value.trim();
+            const tone = document.getElementById('tone').value;
+            const category = document.getElementById('category').value;
+            const username = document.getElementById('username').value.trim();
+            const slideCount = parseInt(document.getElementById('slides').value);
+            const audience = document.getElementById('audience').value.trim();
+            const keyPoints = document.getElementById('keyPoints').value.trim();
+
+            // Default template if none is selected, and show the selector
+            if (!selectedTemplate) {
+                selectedTemplate = 'minimal'; // Set a default
+                const defaultOption = document.querySelector('.template-option[data-template="minimal"]');
+                if (defaultOption) defaultOption.classList.add('selected');
+            }
+            document.querySelector('.template-selection').style.display = 'block';
+
+            // Validate required fields
+            if (!topic) {
+                showToast('Please enter a topic for your carousel.', 'error');
+                document.getElementById('topic').focus();
+                return;
+            }
+            
+            if (!tone) {
+                showToast('Please select a tone for your carousel.', 'error');
+                document.getElementById('tone').focus();
+                return;
+            }
+            
+            if (!category) {
+                showToast('Please select a category for your carousel.', 'error');
+                document.getElementById('category').focus();
+                return;
+            }
+
+            if (!username) {
+                showToast('Please enter your Instagram handle.', 'error');
+                document.getElementById('username').focus();
+                return;
+            }
+            
+            if (topic.length < 10) {
+                showToast('Please provide a more detailed topic (at least 10 characters).', 'error');
+                document.getElementById('topic').focus();
+                return;
+            }
+            
+            isGenerating = true;
+            generateBtn.style.display = 'none';
+            
+            showStatus('loading', 'Creating Your Instagram Carousel', 'Our AI is generating engaging content and a beautiful background image. This may take up to 60 seconds...');
+            
+            try {
+                // Build comprehensive prompt for text generation
+                let contentPrompt = `Create a ${slideCount}-slide Instagram carousel about "${topic}". 
+
+REQUIREMENTS:
+- Tone: ${tone}
+- ${category ? `Category: ${category}` : 'General lifestyle content'}
+- ${audience ? `Target audience: ${audience}` : 'Instagram users interested in lifestyle content'}
+- ${keyPoints ? `Must include these key points: ${keyPoints}` : ''}
+
+SLIDE STRUCTURE:
+- Slide 1: Eye-catching hook/title slide that grabs attention and introduces the topic
+- Middle slides (2-${slideCount-1}): Valuable tips, insights, actionable advice, or steps
+- Final slide (${slideCount}): MUST be engagement-focused with call-to-action like "Which tip resonates with you?", "Save this post for later!", "Tag someone who needs this!", etc.
+
+IMPORTANT GUIDELINES:
+- Keep each slide concise and Instagram-friendly
+- Use emojis appropriately for Instagram audience
+- Make content shareable and relatable
+- Ensure the last slide drives engagement (comments, saves, shares)
+- Each slide should provide value
+
+OUTPUT FORMAT - Respond with ONLY a valid JSON object:
+{
+    "slides": [
+        {
+            "title": "Attention-grabbing title (max 40 chars)",
+            "content": "Engaging content (max 100 chars per slide)"
+        }
+    ],
+    "caption": "Instagram post caption with relevant hashtags and engaging copy that encourages interaction",
+    "imagePrompt": "A descriptive prompt for the background image of the first slide"
+}
+
+Make sure the JSON is properly formatted and valid. The first slide should hook readers, middle slides provide value, and the last slide MUST drive engagement.`;
+                
+                // Generate content
+                const response = await callTextAPI(contentPrompt);
+                
+                // Parse the API response
+                let carouselData;
+                try {
+                    let cleanResponse = response.trim();
+                    
+                    // Remove any markdown formatting
+                    cleanResponse = cleanResponse.replace(/```json\s*/g, '').replace(/```\s*/g, '');
+                    
+                    // Try to extract JSON
+                    const jsonMatch = cleanResponse.match(/\{[\s\S]*\}/);
+                    if (jsonMatch) {
+                        carouselData = JSON.parse(jsonMatch[0]);
+                    } else {
+                        // If no JSON found, try parsing the entire response
+                        carouselData = JSON.parse(cleanResponse);
+                    }
+                    
+                    // Validate structure
+                    if (!carouselData.slides || !Array.isArray(carouselData.slides)) {
+                        throw new Error('Invalid carousel structure');
+                    }
+                    
+                    // Ensure correct number of slides
+                    if (carouselData.slides.length !== slideCount) {
+                        while (carouselData.slides.length < slideCount) {
+                            carouselData.slides.push({
+                                title: `Tip ${carouselData.slides.length + 1}`,
+                                content: `Additional insight about ${topic}`
+                            });
+                        }
+                        carouselData.slides = carouselData.slides.slice(0, slideCount);
+                    }
+                    
+                    // Ensure caption and image prompt exist
+                    if (!carouselData.caption) {
+                        carouselData.caption = `💡 ${topic}\n\nWhich tip will you try first? Let me know in the comments! 👇\n\n#instagram #tips #lifestyle #motivation #inspiration`;
+                    }
+                    
+                    if (!carouselData.imagePrompt) {
+                        carouselData.imagePrompt = await generateImagePrompt(topic, category);
+                    }
+                    
+                } catch (parseError) {
+                    console.error('JSON parsing failed:', parseError);
+                    // Create fallback content
+                    carouselData = await createFallbackCarousel(topic, slideCount, tone, category);
+                }
+                
+                currentCarouselData = carouselData;
+                
+                // Generate background image for first slide
+                showStatus('loading', 'Generating Background Image', 'Creating a beautiful background image for your first slide...');
+                
+                const imageUrl = await generateBackgroundImage(carouselData.imagePrompt);
+                carouselData.backgroundImage = imageUrl;
+                
+                renderCarousel(carouselData, username, selectedTemplate);
+                
+                showToast('🎉 Your Instagram carousel is ready!', 'success');
+                
+            } catch (error) {
+                console.error('Generation error:', error);
+                
+                let errorMessage = 'We encountered an issue generating your carousel.';
+                if (error.message.includes('Failed after')) {
+                    errorMessage = 'Our AI service is temporarily busy. Please try again in a moment.';
+                } else if (error.message.includes('network') || error.message.includes('fetch')) {
+                    errorMessage = 'Network connection issue. Please check your internet and try again.';
+                }
+                
+                showStatus('error', 'Generation Failed', errorMessage, true);
+                showToast('Failed to generate carousel. Please try again.', 'error');
+                
+            } finally {
+                isGenerating = false;
+            }
+        }
+        
+        async function generateBackgroundImage(imagePrompt) {
+            // --- SETUP (Same as before) ---
+            const baseUrl = "https://image.pollinations.ai/prompt";
+            const negativePrompt = encodeURIComponent("any text on the image, blurry, worst quality, low-res");
+            const seed = Math.floor(Math.random() * 1000000);
+            
+            // Helper function to create model-specific URLs
+            const makeUrl = (model) => 
+                `${baseUrl}/${encodeURIComponent(imagePrompt)}?width=1024&height=1024&seed=${seed}&model=${model}&negative_prompt=${negativePrompt}&nologo=true&safe=false`;
+
+            // --- PROMISE-BASED IMAGE LOADING WITH FALLBACK ---
+            // We wrap the entire logic in a single Promise.
+            return new Promise((resolve) => {
+                // --- ATTEMPT 1: Try the Flux model ---
+                const fluxUrl = makeUrl("flux");
+                console.log("Attempting to generate image with primary model (Flux)...");
+                const primaryImage = new Image();
+
+                // If Flux loads successfully, resolve the promise with its URL.
+                primaryImage.onload = () => {
+                    console.log("Successfully generated image with Flux model.");
+                    resolve(fluxUrl); 
+                };
+
+                // If Flux fails to load, trigger the fallback attempt.
+                primaryImage.onerror = () => {
+                    console.warn("Flux model failed. Retrying with fallback model (Turbo)...");
+
+                    // --- ATTEMPT 2: Try the Turbo model ---
+                    const turboUrl = makeUrl("turbo");
+                    const fallbackImage = new Image();
+
+                    // If Turbo loads successfully, resolve the promise with its URL.
+                    fallbackImage.onload = () => {
+                        console.log("Successfully generated image with Turbo model as fallback.");
+                        resolve(turboUrl);
+                    };
+
+                    // If Turbo also fails, resolve with an empty string as the final failure state.
+                    fallbackImage.onerror = () => {
+                        console.error("Fallback model (Turbo) also failed.");
+                        resolve(''); // Return empty string if both fail
+                    };
+
+                    // Start loading the fallback image.
+                    fallbackImage.src = turboUrl;
+                };
+
+                // Start loading the primary image. This kicks off the whole process.
+                primaryImage.src = fluxUrl;
+            });
+        }
+        
+        async function createFallbackCarousel(topic, slideCount, tone, category) {
+            const slides = [
+                {
+                    title: topic.length > 40 ? topic.substring(0, 37) + '...' : topic,
+                    content: "Let's dive into this topic and discover valuable insights together! 💫"
+                }
+            ];
+            
+            // Add content slides
+            for (let i = 1; i < slideCount - 1; i++) {
+                slides.push({
+                    title: `Tip ${i} 💡`,
+                    content: `Key insight ${i} about ${topic.toLowerCase()} that you should know.`
+                });
+            }
+            
+            // Add engagement slide
+            slides.push({
+                title: "Your Turn! 🙌",
+                content: "Which tip resonates with you the most? Drop a comment below and let's chat! 💬✨"
+            });
+            
+            const imagePrompt = await generateImagePrompt(topic, category);
+            
+            return {
+                slides: slides,
+                caption: `✨ ${topic}\n\nSave this post for later and tag someone who needs to see this! 💕\n\n#tips #inspiration #lifestyle #motivation #selfcare #growth #mindset #wellness`,
+                imagePrompt: imagePrompt
+            };
+        }
+        
+        function renderCarousel(data, username, template) {
+            const resultContainer = document.getElementById('resultContainer');
+            
+            let slidesHTML = '';
+            data.slides.forEach((slide, index) => {
+                const isFirst = index === 0;
+                let slideClass = `carousel-slide template-${template}`;
+                
+                if (isFirst) slideClass += ' first-slide';
+                
+                let slideStyle = '';
+                if (isFirst && data.backgroundImage) {
+                    slideStyle = `style="background-image: url('${data.backgroundImage}');"`;
+                }
+                
+                slidesHTML += `
+                    <div class="${slideClass}" id="slide-${index}" data-slide-index="${index}" ${slideStyle}>
+                        ${isFirst && data.backgroundImage ? '<div class="slide-overlay"></div>' : ''}
+                        ${!isFirst ? `<div class="slide-number">${index + 1}/${data.slides.length}</div>` : ''}
+                        <div class="slide-content">
+                            <div class="slide-title">${slide.title}</div>
+                            <div class="slide-text">${slide.content}</div>
+                        </div>
+                        <div class="slide-footer">
+                            <div class="slide-username">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Instagram_logo_2016.svg/1200px-Instagram_logo_2016.svg.png" class="instagram-icon" alt="Instagram Logo">
+                                ${username.replace('@', '')}
+                            </div>
+                            <div class="slide-logo">Powered by Growwh.com</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            resultContainer.innerHTML = `
+                <div class="carousel-container">
+                    <div class="carousel-header">
+                        <h2>✨ Your Instagram Carousel</h2>
+                        <p>Ready to share with your followers!</p>
+                    </div>
+                    
+                    <div class="carousel-slides">
+                        ${slidesHTML}
+                    </div>
+                    
+                    <div class="caption-section">
+                        <div class="caption-title">Instagram Caption</div>
+                        <div class="caption-text" id="captionText">${data.caption}</div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="action-btn" onclick="downloadAllImages()">
+                            📸 Download Images
+                        </button>
+                        <button class="action-btn" onclick="copyCaption()">
+                            📋 Copy Caption
+                        </button>
+                        <button class="action-btn" onclick="clearResults()" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                            🔄 Start Over
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        async function downloadAllImages() {
+            if (!currentCarouselData) {
+                showToast('No carousel data available for download.', 'error');
+                return;
+            }
+            
+            const slides = document.querySelectorAll('.carousel-slide');
+            const downloadBtn = document.querySelector('.action-btn');
+            const originalText = downloadBtn.textContent;
+            
+            try {
+                downloadBtn.disabled = true;
+                downloadBtn.textContent = 'Preparing Images...';
+                
+                for (let i = 0; i < slides.length; i++) {
+                    const slide = slides[i];
+                    
+                    try {
+                        const canvas = await html2canvas(slide, {
+                            backgroundColor: '#ffffff',
+                            scale: 3,
+                            width: 400,
+                            height: 400,
+                            useCORS: true,
+                            logging: false,
+                            allowTaint: true,
+                            onclone: (clonedDoc) => {
+                                const clonedSlide = clonedDoc.querySelector(`[data-slide-index="${i}"]`);
+                                if (clonedSlide) {
+                                    clonedSlide.style.fontFamily = 'Inter, system-ui, -apple-system, sans-serif';
+                                    // REMOVED border radius from cloned slide
+                                }
+                            }
+                        });
+                        
+                        const blob = await new Promise(resolve => {
+                            canvas.toBlob(resolve, 'image/png', 1.0);
+                        });
+                        
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = `Instagram-Carousel-Slide-${String(i + 1).padStart(2, '0')}.png`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(url);
+                        
+                        downloadBtn.textContent = `Downloaded ${i + 1}/${slides.length} images...`;
+                        
+                        if (i < slides.length - 1) {
+                            await new Promise(resolve => setTimeout(resolve, 800));
+                        }
+                        
+                    } catch (error) {
+                        console.error(`Error downloading slide ${i + 1}:`, error);
+                        showToast(`Failed to download slide ${i + 1}`, 'error');
+                    }
+                }
+                
+                showToast(`🎉 Successfully downloaded ${slides.length} images!`, 'success');
+                
+            } catch (error) {
+                console.error('Download error:', error);
+                showToast('Failed to download images. Please try again.', 'error');
+            } finally {
+                downloadBtn.disabled = false;
+                downloadBtn.textContent = originalText;
+            }
+        }
+        
+        // REMOVED downloadAsPDF function entirely
+
+        function copyCaption() {
+            if (!currentCarouselData) {
+                showToast('No caption available to copy.', 'error');
+                return;
+            }
+            
+            const captionText = document.getElementById('captionText').textContent;
+            
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(captionText).then(() => {
+                    showToast('📋 Caption copied to clipboard!', 'success');
+                    
+                    const captionElement = document.getElementById('captionText');
+                    captionElement.style.background = '#dcfce7';
+                    captionElement.style.borderColor = '#16a34a';
+                    setTimeout(() => {
+                        captionElement.style.background = 'white';
+                        captionElement.style.borderColor = '#e2e8f0';
+                    }, 1500);
+                    
+                }).catch(err => {
+                    console.error('Failed to copy caption:', err);
+                    fallbackCopyCaption(captionText);
+                });
+            } else {
+                fallbackCopyCaption(captionText);
+            }
+        }
+        
+        function fallbackCopyCaption(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showToast('📋 Caption copied to clipboard!', 'success');
+            } catch (err) {
+                console.error('Fallback copy failed:', err);
+                showToast('Unable to copy caption. Please select and copy manually.', 'error');
+            } finally {
+                document.body.removeChild(textArea);
+            }
+        }
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                if (!isGenerating) {
+                    generateCarousel();
+                }
+            }
+            
+            if (e.key === 'Escape' && currentCarouselData) {
+                clearResults();
+            }
+        });
+        
+        // Auto-save form data
+        const formFields = ['topic', 'tone', 'category', 'username', 'slides', 'audience', 'keyPoints'];
+        
+        window.addEventListener('load', function() {
+            formFields.forEach(fieldId => {
+                const savedValue = localStorage.getItem(`carousel_${fieldId}`);
+                if (savedValue) {
+                    const field = document.getElementById(fieldId);
+                    if (field) {
+                        field.value = savedValue;
+                    }
+                }
+            });
+            
+            // Load saved template
+            const savedTemplate = localStorage.getItem('carousel_template');
+            if (savedTemplate) {
+                const templateOption = document.querySelector(`[data-template="${savedTemplate}"]`);
+                if (templateOption) {
+                    templateOption.click();
+                }
+            }
+        });
+        
+        // Save form data on input
+        formFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.addEventListener('input', function() {
+                    localStorage.setItem(`carousel_${fieldId}`, this.value);
+                });
+            }
+        });
+        
+        // Network status handling
+        window.addEventListener('online', function() {
+            showToast('✅ You\'re back online!', 'success');
+        });
+        
+        window.addEventListener('offline', function() {
+            showToast('📡 You appear to be offline. Please check your connection.', 'error');
+        });
+        
+        // Prevent form submission on Enter key
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'BUTTON') {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>
