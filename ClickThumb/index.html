@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Thumbnail Generator - AI-Powered</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            padding: 20px;
+            color: #270a47;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #270a47, #693ab7, #da3d72);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: start;
+        }
+        
+        .form-section {
+            background: #fafbfc;
+            border-radius: 16px;
+            padding: 30px;
+            border: 2px solid #e1e5e9;
+        }
+        
+        .form-section h2 {
+            color: #2c3e50;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: inherit;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #fafbfc;
+            color: #2c3e50;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #693ab7;
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(105, 58, 183, 0.08);
+            transform: translateY(-1px);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 16px;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+        
+        .checkbox-group label {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: none;
+            letter-spacing: normal;
+        }
+        
+        .generate-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #693ab7, #270a47);
+            color: white;
+            border: none;
+            padding: 20px;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 32px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .generate-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(105, 58, 183, 0.4);
+        }
+        
+        .generate-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .generate-btn.loading {
+            color: transparent;
+        }
+        
+        .generate-btn.loading::after {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            top: 50%;
+            left: 50%;
+            margin-left: -12px;
+            margin-top: -12px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .preview-section {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 30px;
+            border: 2px solid #e1e5e9;
+            position: sticky;
+            top: 20px;
+        }
+        
+        .preview-section h2 {
+            color: #2c3e50;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .thumbnail-canvas {
+            position: absolute;
+            left: -9999px; /* Move off-screen */
+            top: 0;
+            width: 1280px; /* Fixed high-resolution width */
+            height: 720px; /* Fixed high-resolution height */
+            background: #000;
+            overflow: hidden;
+            display: none; /* Hide the staging area */
+        }
+        
+        /* This is the new visible container that holds the final image */
+        #finalImageContainer {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background-color: #e2e8f0;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            position: relative; /* For positioning placeholder */
+        }
+
+        #finalImageContainer:hover {
+            transform: scale(1.02);
+        }
+
+        #finalImageContainer img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .thumbnail-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .thumbnail-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1;
+        }
+        
+        .thumbnail-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            z-index: 2;
+        }
+        
+        .thumbnail-title {
+            color: white;
+            font-weight: 900;
+            text-shadow: 3px 3px 12px rgba(0,0,0,0.8);
+            line-height: 1;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            max-width: 100%;
+            word-wrap: break-word;
+        }
+        
+        .thumbnail-subtitle {
+            color: #ffd700;
+            font-weight: 700;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .placeholder-thumbnail {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #693ab7, #270a47);
+            color: white;
+            text-align: center;
+            padding: 40px 20px;
+        }
+        .placeholder-thumbnail .icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+            opacity: 0.7;
+        }
+        
+        .placeholder-thumbnail h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .placeholder-thumbnail p {
+            font-size: 1rem;
+            opacity: 0.8;
+            max-width: 300px;
+        }
+        
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        
+        .action-btn {
+            background: linear-gradient(135deg, #da3d72, #5e407b);
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .action-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(218, 61, 114, 0.3);
+        }
+        
+        .action-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .regenerate-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            margin-top: 16px;
+        }
+        
+        .regenerate-btn:hover:not(:disabled) {
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+        }
+        
+        .status-message {
+            text-align: center;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 16px 0;
+            font-weight: 600;
+        }
+        
+        .status-message.loading {
+            background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+            color: #475569;
+            border: 2px solid #cbd5e1;
+        }
+        
+        .status-message.error {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: #dc2626;
+            border: 2px solid #f87171;
+        }
+        
+        .status-message.success {
+            background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+            color: #16a34a;
+            border: 2px solid #4ade80;
+        }
+        
+        .loading-spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid rgba(71, 85, 105, 0.2);
+            border-top: 3px solid #475569;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 16px auto;
+        }
+        
+        .toast {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            z-index: 1000;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            transform: translateX(400px);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+        }
+        
+        .toast.success {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+        
+        .toast.error {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+        
+        .info-card {
+            background: rgba(105, 58, 183, 0.1);
+            border: 1px solid rgba(105, 58, 183, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            position: relative;
+        }
+        
+        .info-card::before {
+            content: "🎨";
+            font-size: 24px;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+        
+        .info-card .info-content {
+            margin-left: 40px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+            
+            .preview-section {
+                position: static;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
+            
+            .container {
+                padding: 24px 20px;
+                border-radius: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .form-section, .preview-section {
+                padding: 24px;
+            }
+            
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px 16px;
+            }
+            
+            .header h1 {
+                font-size: 1.9rem;
+            }
+            
+            .form-section, .preview-section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧩 YouTube Thumbnail Generator</h1>
+            <p>Create eye-catching, viral thumbnails with AI-powered design and optimization</p>
+        </div>
+        
+        <div class="main-content">
+            <!-- Form Section -->
+            <div class="form-section">
+                <h2>📝 Content Details</h2>
+                
+                <div class="info-card">
+                    <div class="info-content">
+                        <strong>Pro Tips:</strong> Use emotional expressions, bright colors, and clear readable text. Include faces when possible for higher CTR.
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="videoTopic">🎯 Video Topic/Title</label>
+                    <textarea id="videoTopic" placeholder="e.g., 'I Spent 24 Hours in a Haunted House' or 'This Simple Trick Will Change Your Life'" maxlength="100"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="videoCategory">📂 Category</label>
+                    <select id="videoCategory">
+                        <option value="">Select Category</option>
+                        <option value="gaming">Gaming</option>
+                        <option value="tech">Tech Reviews</option>
+                        <option value="lifestyle">Lifestyle</option>
+                        <option value="food">Food & Cooking</option>
+                        <option value="fitness">Fitness & Health</option>
+                        <option value="education">Education</option>
+                        <option value="entertainment">Entertainment</option>
+                        <option value="music">Music</option>
+                        <option value="travel">Travel</option>
+                        <option value="fashion">Fashion & Beauty</option>
+                        <option value="business">Business</option>
+                        <option value="comedy">Comedy</option>
+                        <option value="news">News & Politics</option>
+                        <option value="sports">Sports</option>
+                        <option value="diy">DIY & Crafts</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="thumbnailStyle">🎨 Thumbnail Style</label>
+                    <select id="thumbnailStyle">
+                        <option value="">Select Style</option>
+                        <option value="dramatic">Dramatic & Intense</option>
+                        <option value="bright-colorful">Bright & Colorful</option>
+                        <option value="minimalist">Clean & Minimalist</option>
+                        <option value="vintage">Vintage & Retro</option>
+                        <option value="neon-cyberpunk">Neon & Cyberpunk</option>
+                        <option value="professional">Professional & Corporate</option>
+                        <option value="cartoon">Cartoon & Animated</option>
+                        <option value="realistic">Realistic & Cinematic</option>
+                        <option value="abstract">Abstract & Artistic</option>
+                        <option value="collage">Collage & Mixed Media</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="emotionalTone">😊 Emotional Tone</label>
+                    <select id="emotionalTone">
+                        <option value="">Select Tone</option>
+                        <option value="excited">Excited & Energetic</option>
+                        <option value="shocked">Shocked & Surprised</option>
+                        <option value="curious">Curious & Mysterious</option>
+                        <option value="happy">Happy & Positive</option>
+                        <option value="serious">Serious & Professional</option>
+                        <option value="funny">Funny & Humorous</option>
+                        <option value="dramatic">Dramatic & Intense</option>
+                        <option value="inspirational">Inspirational & Motivational</option>
+                        <option value="urgent">Urgent & Important</option>
+                        <option value="relaxed">Calm & Relaxed</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="targetAudience">👥 Target Audience</label>
+                    <select id="targetAudience">
+                        <option value="">Select Audience</option>
+                        <option value="kids">Kids (6-12)</option>
+                        <option value="teens">Teens (13-17)</option>
+                        <option value="young-adults">Young Adults (18-25)</option>
+                        <option value="millennials">Millennials (26-40)</option>
+                        <option value="gen-x">Gen X (41-55)</option>
+                        <option value="boomers">Baby Boomers (55+)</option>
+                        <option value="general">General Audience</option>
+                        <option value="professionals">Professionals</option>
+                        <option value="students">Students</option>
+                        <option value="gamers">Gamers</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="additionalElements">✨ Additional Elements</label>
+                    <textarea id="additionalElements" placeholder="e.g., 'include money symbols, red arrows, shocked face expression, before/after split'" maxlength="200"></textarea>
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="includeFace" checked>
+                    <label for="includeFace">Include human face/expressions</label>
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="highContrast" checked>
+                    <label for="highContrast">High contrast & vibrant colors</label>
+                </div>
+                
+                <button class="generate-btn" id="generateBtn" onclick="generateThumbnail()">
+                    Generate Thumbnail
+                </button>
+            </div>
+            
+            <!-- Preview Section -->
+            <div class="preview-section">
+                <h2>🖼️ Preview</h2>
+                
+                <!-- ADD THESE -->
+
+                <!-- 1. This is the new VISIBLE container for the final image -->
+                <div id="finalImageContainer">
+                    <div class="placeholder-thumbnail">
+                        <div class="icon">🎬</div>
+                        <h3>Your Thumbnail Preview</h3>
+                        <p>Fill out the form and click "Generate Thumbnail" to create your custom YouTube thumbnail</p>
+                    </div>
+                </div>
+
+                <!-- 2. This is the original canvas, now a HIDDEN staging area -->
+                <div class="thumbnail-canvas" id="thumbnailCanvas"></div>
+                
+                <div class="action-buttons">
+                    <button class="action-btn" id="downloadBtn" onclick="downloadThumbnail()" disabled>
+                        💾 Download
+                    </button>
+                    <button class="action-btn" id="copyBtn" onclick="copyToClipboard()" disabled>
+                        📋 Copy
+                    </button>
+                </div>
+                
+                <button class="action-btn regenerate-btn" id="regenerateBtn" onclick="regenerateThumbnail()" disabled>
+                    🔄 Generate New Version
+                </button>
+                
+                <div id="statusContainer"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentImageUrl = '';
+        let currentSeed = null;
+        let generatedTitle = '';
+        let generatedSubtitle = '';
+        let currentStyles = null;
+        let currentRenderedImage = null;
+        
+        function generateRandomSeed() {
+            return Math.floor(Math.random() * 1000000);
+        }
+        
+        function showStatus(message, type) {
+            const container = document.getElementById('statusContainer');
+            let statusHtml = '';
+            
+            if (type === 'loading') {
+                statusHtml = `
+                    <div class="status-message loading">
+                        <div class="loading-spinner"></div>
+                        <p>${message}</p>
+                    </div>
+                `;
+            } else if (type === 'error') {
+                statusHtml = `
+                    <div class="status-message error">
+                        <p>${message}</p>
+                    </div>
+                `;
+            } else if (type === 'success') {
+                statusHtml = `
+                    <div class="status-message success">
+                        <p>${message}</p>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = statusHtml;
+        }
+        
+        function showToast(message, type) {
+            const existingToast = document.querySelector('.toast');
+            if (existingToast) {
+                existingToast.remove();
+            }
+            
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 100);
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 300);
+            }, 4000);
+        }
+        
+        async function generateThumbnailElements() {
+            // --- NEW: WE DECIDE THE LAYOUT FIRST ---
+            const layouts = ['left-text-right-subject', 'right-text-left-subject', 'top-text-bottom-subject', 'bottom-text-top-subject'];
+            const chosenLayout = layouts[Math.floor(Math.random() * layouts.length)];
+
+            // Determine the required blank space based on our chosen layout
+            let imageConstraint = '';
+            if (chosenLayout === 'left-text-right-subject') {
+                imageConstraint = 'The main subject MUST be on the right side, leaving the left side completely blank for text.';
+            } else if (chosenLayout === 'right-text-left-subject') {
+                imageConstraint = 'The main subject MUST be on the left side, leaving the right side completely blank for text.';
+            } else if (chosenLayout === 'top-text-bottom-subject') {
+                imageConstraint = 'The main subject MUST be in the bottom half, leaving the top area completely blank for text.';
+            } else { // bottom-text-top-subject
+                imageConstraint = 'The main subject MUST be in the top half, leaving the bottom area completely blank for text.';
+            }
+
+            const randomSeed = generateRandomSeed();
+            const videoTopic = document.getElementById('videoTopic').value.trim();
+            const videoCategory = document.getElementById('videoCategory').value;
+            const thumbnailStyle = document.getElementById('thumbnailStyle').value;
+            const emotionalTone = document.getElementById('emotionalTone').value;
+            const targetAudience = document.getElementById('targetAudience').value;
+            const additionalElements = document.getElementById('additionalElements').value.trim();
+            const includeFace = document.getElementById('includeFace').checked;
+            const highContrast = document.getElementById('highContrast').checked;
+            
+            // --- MODIFIED PROMPT ---
+            // The prompt no longer asks the AI to choose a layout.
+            // We provide the layout and a strict constraint for the image prompt.
+            let prompt = `Create advanced YouTube thumbnail elements for: "${videoTopic}".
+
+INPUTS:
+- Category: ${videoCategory || 'general'}
+- Style: ${thumbnailStyle || 'dramatic'}
+- Tone: ${emotionalTone || 'excited'}
+- Audience: ${targetAudience || 'general'}
+- Include face: ${includeFace ? 'YES' : 'NO'}
+- High contrast: ${highContrast ? 'YES' : 'NO'}
+- Extra elements: ${additionalElements || 'none'}
+- PRE-DETERMINED LAYOUT: ${chosenLayout}
+
+/*Ignore this number - ${randomSeed}*/
+
+Follow these steps:
+- Analyze all inputs.
+- FIRST: Reason step by step how to craft a thumbnail concept that combines all inputs.
+- NEXT: Based on your reasoning, generate a concise imagePrompt (≤150 chars).
+- CRITICAL: Your imagePrompt MUST strictly follow this rule: "${imageConstraint}". This is the most important instruction to prevent text overlapping the subject.
+- THEN: Create a punchy, viral-optimized YouTube title (≤40 chars) and a subtitle (≤30 chars).
+- THEN: Specify detailed CSS styles for the title, subtitle, and an overlay. Styles must ensure exceptional readability.
+
+RESPONSE FORMAT:
+Respond ONLY with valid JSON, using the following keys. Do NOT include a "layout" key in your response, as it is already determined.
+
+{
+  "imagePrompt": "detailed visual description adhering to the positioning constraint",
+  "title": "PUNCHY TITLE (40 chars max)",
+  "subtitle": "supporting text (30 chars max)",
+  "titleStyle": { "color": "#xxxxxx", "fontSize": "...", "fontWeight": "...", "textShadow": "...", "backgroundColor": "...", "padding": "...", "borderRadius": "...", "border": "...", "whiteSpace": "nowrap" },
+  "subtitleStyle": { "color": "#xxxxxx", "fontSize": "...", "fontWeight": "...", "textShadow": "...", "backgroundColor": "...", "padding": "...", "borderRadius": "...", "whiteSpace": "nowrap" },
+  "overlayStyle": "..."
+}
+
+Example (if PRE-DETERMINED LAYOUT was 'right-text-left-subject'):
+{
+  "imagePrompt": "Close-up of a shocked man on the left. The entire right side of the image is empty, with a simple gradient background.",
+  "title": "AI IS ALIVE!",
+  "subtitle": "The truth is shocking",
+  "titleStyle": { "color": "#FFFFFF", "fontSize": "clamp(1.2rem, 6.5cqw, 3.5rem)", "fontWeight": "900", "textShadow": "4px 4px 0px #000000", "backgroundColor": "rgba(20,20,30,0.85)", "padding": "8px 18px", "borderRadius": "10px", "border": "3px solid #00FFFB", "whiteSpace": "nowrap" },
+  "subtitleStyle": { "color": "#00FFFB", "fontSize": "clamp(0.7rem, 3.5cqw, 1.6rem)", "fontWeight": "700", "textShadow": "2px 2px 6px #000", "backgroundColor": "rgba(15,15,25,0.7)", "padding": "5px 13px", "borderRadius": "5px", "whiteSpace": "nowrap" },
+  "overlayStyle": "linear-gradient(270deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 50%)"
+}
+
+IMPORTANT: The link between the PRE-DETERMINED LAYOUT and the imagePrompt instruction is the most important rule. Only output the requested JSON with no additional commentary.`;
+
+            try {
+                const response = await fetch(`https://text.pollinations.ai/${encodeURIComponent(prompt)}`);
+                const aiResponse = await response.text();
+                
+                const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    const parsed = JSON.parse(jsonMatch[0]);
+                    if (parsed.imagePrompt && parsed.title && parsed.titleStyle) {
+                        // --- NEW: We add our chosen layout to the object here ---
+                        parsed.layout = chosenLayout; 
+                        return parsed;
+                    }
+                }
+                // If parsing fails or is invalid, throw an error to trigger the fallback
+                throw new Error("Invalid JSON response from AI");
+                
+            } catch (error) {
+                console.error('Error generating elements, using fallback:', error);
+                return createFallbackElements(videoTopic, videoCategory, thumbnailStyle, emotionalTone, includeFace, highContrast, additionalElements);
+            }
+        }
+        
+        function createFallbackElements(videoTopic, videoCategory, thumbnailStyle, emotionalTone, includeFace, highContrast, additionalElements) {
+            const layouts = ['center', 'left-text-right-subject', 'right-text-left-subject', 'top-text-bottom-subject'];
+            const layout = layouts[Math.floor(Math.random() * layouts.length)];
+            
+            let imagePrompt = `${thumbnailStyle || 'dramatic'} ${emotionalTone || 'excited'} ${videoCategory || 'youtube'} thumbnail`;
+            if (includeFace) imagePrompt += ', expressive human face';
+            if (layout.includes('left-text')) imagePrompt += ', subject on right side, clear left space';
+            if (layout.includes('right-text')) imagePrompt += ', subject on left side, clear right space';
+            if (layout.includes('top-text')) imagePrompt += ', clear top area for text';
+            if (layout.includes('bottom-text')) imagePrompt += ', clear bottom area for text';
+            if (highContrast) imagePrompt += ', vibrant contrasting colors';
+            
+            return {
+                imagePrompt: imagePrompt.substring(0, 80),
+                title: videoTopic.toUpperCase().substring(0, 40),
+                subtitle: (additionalElements || videoCategory || '').toUpperCase().substring(0, 30),
+                layout: layout,
+                titleStyle: {
+                    color: highContrast ? '#FFFFFF' : '#FFFFFF',
+                    "fontSize": "clamp(1.2rem, 6.5cqw, 3.5rem)",
+                    fontWeight: '900',
+                    textShadow: highContrast ? '4px 4px 0px #000000, 6px 6px 0px #FF0000' : '3px 3px 8px rgba(0,0,0,0.8)',
+                    backgroundColor: 'rgba(0,0,0,0.7)',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    border: highContrast ? '3px solid #FFFF00' : 'none',
+                    whiteSpace: 'nowrap'
+                },
+                subtitleStyle: {
+                    color: '#FFD700',
+                    fontSize: 'clamp(0.7rem, 3.5cqw, 1.6rem)',
+                    fontWeight: '700',
+                    textShadow: '2px 2px 4px rgba(0,0,0,0.8)',
+                    backgroundColor: 'rgba(0,0,0,0.6)',
+                    padding: '4px 12px',
+                    borderRadius: '4px',
+                    whiteSpace: 'nowrap'
+                },
+                overlayStyle: 'linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.6) 100%)'
+            };
+        }
+        
+        async function generateBackgroundImage(imagePrompt) {
+            currentSeed = generateRandomSeed();
+
+            revisedPrompt = imagePrompt;
+            const imageDescription = "Follow the exact instruction: " + revisedPrompt;
+            const encodedPrompt = encodeURIComponent(imageDescription);
+
+            const negativePrompt = encodeURIComponent("text, logos, watermarks, signatures, blurry, low quality, dark, boring");
+            
+            // Try Flux model first
+            const fluxUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1280&height=720&seed=${currentSeed}&model=flux&negative_prompt=${negativePrompt}&nologo=true`;
+            
+            try {
+                const response = await fetch(fluxUrl);
+                if (response.ok) {
+                    return fluxUrl;
+                }
+                throw new Error('Flux model failed');
+            } catch (error) {
+                console.warn('Flux model failed, trying turbo...');
+                // Fallback to turbo model
+                const turboUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1280&height=720&seed=${currentSeed}&model=turbo&negative_prompt=${negativePrompt}&nologo=true`;
+                
+                const response = await fetch(turboUrl);
+                if (response.ok) {
+                    return turboUrl;
+                }
+                throw new Error('Both image generation models failed');
+            }
+        }
+        
+        async function applyThumbnailStyles(imageUrl, elements) {
+            const stagingCanvas = document.getElementById('thumbnailCanvas');
+            const imageContainer = document.getElementById('finalImageContainer');
+            
+            return new Promise((resolve, reject) => {
+                // The preloading logic is still valuable, but we use it to ensure the image is cached.
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+
+                img.onload = () => {
+                    // --- PART 1: CHANGE THE HTML STRUCTURE ---
+                    // We now use an <img> tag instead of a background-image div. This is much more reliable for html2canvas.
+                    stagingCanvas.style.display = 'block';
+
+                    let contentClass = '';
+                    let justification = 'center'; // Vertical alignment
+                    let alignment = 'center';     // Horizontal alignment
+
+                    switch (elements.layout) {
+                        case 'left-text-right-subject': contentClass = 'left-aligned'; alignment = 'flex-start'; break;
+                        case 'right-text-left-subject': contentClass = 'right-aligned'; alignment = 'flex-end'; break;
+                        case 'top-text-bottom-subject': contentClass = 'top-aligned'; justification = 'flex-start'; break;
+                        case 'bottom-text-top-subject': contentClass = 'bottom-aligned'; justification = 'flex-end'; break;
+                        default: contentClass = 'center-aligned';
+                    }
+
+                    // **CHANGED HERE**: Notice the new <img> tag and the removal of the old .thumbnail-bg div.
+                    const thumbnailHtml = `
+                        <img src="${imageUrl}" class="thumbnail-bg-img" alt="Generated Background">
+                        <div class="thumbnail-overlay" style="background: ${elements.overlayStyle || 'linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.6) 100%)'}"></div>
+                        <div class="thumbnail-content ${contentClass}" style="justify-content: ${justification}; align-items: ${alignment};">
+                            <div class="text-wrapper">
+                                <div class="thumbnail-title" style="
+                                    color: ${elements.titleStyle.color};
+                                    font-size: ${elements.titleStyle.fontSize};
+                                    font-weight: ${elements.titleStyle.fontWeight};
+                                    text-shadow: ${elements.titleStyle.textShadow};
+                                    background: ${elements.titleStyle.backgroundColor || 'transparent'};
+                                    padding: ${elements.titleStyle.padding || '0'};
+                                    border-radius: ${elements.titleStyle.borderRadius || '0'};
+                                    border: ${elements.titleStyle.border || 'none'};
+                                    display: inline-block;
+                                    max-width: 100%;
+                                ">${elements.title}</div>
+                                ${elements.subtitle ? `<div class="thumbnail-subtitle" style="
+                                    color: ${elements.subtitleStyle.color};
+                                    font-size: ${elements.subtitleStyle.fontSize};
+                                    font-weight: ${elements.subtitleStyle.fontWeight};
+                                    text-shadow: ${elements.subtitleStyle.textShadow};
+                                    background: ${elements.subtitleStyle.backgroundColor || 'transparent'};
+                                    padding: ${elements.subtitleStyle.padding || '0'};
+                                    border-radius: ${elements.subtitleStyle.borderRadius || '0'};
+                                    display: inline-block;
+                                    margin-top: 10px;
+                                    max-width: 100%;
+                                ">${elements.subtitle}</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                    stagingCanvas.innerHTML = thumbnailHtml;
+
+                    const style = document.createElement('style');
+                    // **CHANGED HERE**: Added styles for the new .thumbnail-bg-img class.
+                    style.innerHTML = `
+                        .thumbnail-bg-img {
+                            position: absolute;
+                            top: 0; left: 0;
+                            width: 100%; height: 100%;
+                            object-fit: cover;
+                            z-index: 0;
+                        }
+                        .text-wrapper { display: flex; flex-direction: column; }
+                        .left-aligned .text-wrapper { width: 55%; align-items: flex-start; text-align: left; }
+                        .right-aligned .text-wrapper { width: 55%; align-items: flex-end; text-align: right; }
+                        .top-aligned .text-wrapper, .bottom-aligned .text-wrapper, .center-aligned .text-wrapper { width: 90%; align-items: center; text-align: center; }
+                    `;
+                    stagingCanvas.appendChild(style);
+
+                    const fitText = (selector) => {
+                        const el = stagingCanvas.querySelector(selector);
+                        const wrapper = stagingCanvas.querySelector('.text-wrapper');
+                        if (!el || !wrapper) return;
+                        
+                        let currentFontSize = parseFloat(window.getComputedStyle(el).fontSize);
+                        while (el.scrollWidth > wrapper.clientWidth && currentFontSize > 10) {
+                            currentFontSize -= 2;
+                            el.style.fontSize = `${currentFontSize}px`;
+                        }
+                    };
+                    
+                    fitText('.thumbnail-title');
+                    fitText('.thumbnail-subtitle');
+                    
+                    // --- PART 2: THE FAILSAFE DELAY ---
+                    // This gives the browser a moment to paint the <img> to the DOM before we screenshot it.
+                    setTimeout(async () => {
+                        try {
+                            const finalCanvas = await html2canvas(stagingCanvas, { useCORS: true, allowTaint: true });
+                            currentRenderedImage = finalCanvas.toDataURL('image/png');
+                            
+                            imageContainer.innerHTML = `<img src="${currentRenderedImage}" alt="Generated YouTube Thumbnail">`;
+                            stagingCanvas.style.display = 'none';
+
+                            document.getElementById('downloadBtn').disabled = false;
+                            document.getElementById('copyBtn').disabled = false;
+                            document.getElementById('regenerateBtn').disabled = false;
+                            resolve();
+                        } catch(e) {
+                            console.error("html2canvas error:", e);
+                            reject(new Error('Failed to render canvas.'));
+                        }
+                    }, 100); // 100ms delay is usually plenty.
+                };
+
+                img.onerror = () => {
+                    console.error('Image failed to load:', imageUrl);
+                    reject(new Error('Background image could not be loaded.'));
+                };
+
+                img.src = imageUrl;
+            });
+        }
+        
+        async function generateThumbnail() {
+            const videoTopic = document.getElementById('videoTopic').value.trim();
+            
+            if (!videoTopic) {
+                showToast('Please enter a video topic first', 'error');
+                return;
+            }
+            
+            const generateBtn = document.getElementById('generateBtn');
+            generateBtn.disabled = true;
+            generateBtn.classList.add('loading');
+            
+            showStatus('Analyzing content and generating elements...', 'loading');
+            
+            try {
+                // Step 1: Generate thumbnail elements with AI
+                const elements = await generateThumbnailElements();
+                currentStyles = elements;
+                
+                showStatus('Creating optimized background image...', 'loading');
+                
+                // Step 2: Generate background image with smart positioning
+                const imageUrl = await generateBackgroundImage(elements.imagePrompt);
+                
+                // Store current data
+                currentImageUrl = imageUrl;
+                generatedTitle = elements.title;
+                generatedSubtitle = elements.subtitle;
+                
+                // Step 3: Apply advanced styling and positioning
+                showStatus('Rendering final image...', 'loading'); // Add this status
+                await applyThumbnailStyles(imageUrl, elements); // Change to await
+                
+                showStatus('Thumbnail generated successfully!', 'success');
+                showToast('Advanced thumbnail created with smart positioning!', 'success');
+                
+            } catch (error) {
+                console.error('Error generating thumbnail:', error);
+                showStatus('Error generating thumbnail. Please try again.', 'error');
+                showToast('Failed to generate thumbnail. Please try again.', 'error');
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.classList.remove('loading');
+            }
+        }
+        
+        async function regenerateThumbnail() {
+            if (!currentImageUrl) {
+                showToast('No thumbnail to regenerate', 'error');
+                return;
+            }
+            
+            const regenerateBtn = document.getElementById('regenerateBtn');
+            const originalText = regenerateBtn.textContent;
+            regenerateBtn.disabled = true;
+            regenerateBtn.textContent = '🔄 Regenerating...';
+            
+            showStatus('Creating new version with fresh styling...', 'loading');
+            
+            try {
+                // Generate new elements with different styling
+                const elements = await generateThumbnailElements();
+                currentStyles = elements;
+                
+                // Generate new background image
+                const imageUrl = await generateBackgroundImage(elements.imagePrompt);
+                
+                // Update data
+                currentImageUrl = imageUrl;
+                generatedTitle = elements.title;
+                generatedSubtitle = elements.subtitle;
+                
+                showStatus('Rendering final image...', 'loading'); // Add this status
+                await applyThumbnailStyles(imageUrl, elements); // Change to await
+                
+                showStatus('New advanced version generated!', 'success');
+                showToast('New thumbnail version with updated styling!', 'success');
+                
+            } catch (error) {
+                console.error('Error regenerating thumbnail:', error);
+                showStatus('Error regenerating thumbnail. Please try again.', 'error');
+                showToast('Failed to regenerate thumbnail', 'error');
+            } finally {
+                regenerateBtn.disabled = false;
+                regenerateBtn.textContent = originalText;
+            }
+        }
+        
+        // Replace the entire downloadThumbnail function
+        async function downloadThumbnail() {
+            if (!currentRenderedImage) return showToast('No thumbnail to download', 'error');
+            const link = document.createElement('a');
+            const videoTopic = document.getElementById('videoTopic').value.trim() || 'thumbnail';
+            link.download = `yt-thumbnail-${videoTopic.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.png`;
+            link.href = currentRenderedImage;
+            link.click();
+            showToast('Download started!', 'success');
+        }
+
+        // Replace the entire copyToClipboard function
+        async function copyToClipboard() {
+            if (!currentRenderedImage) return showToast('No thumbnail to copy', 'error');
+            try {
+                const response = await fetch(currentRenderedImage);
+                const blob = await response.blob();
+                await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+                showToast('Thumbnail copied to clipboard!', 'success');
+            } catch (error) {
+                showToast('Failed to copy thumbnail', 'error');
+            }
+        }
+        
+        // Auto-save form data
+        document.addEventListener('DOMContentLoaded', function() {
+            const formElements = document.querySelectorAll('input, select, textarea');
+            
+            formElements.forEach(element => {
+                // Load saved values
+                const savedValue = localStorage.getItem(`thumbnail_gen_${element.id}`);
+                if (savedValue && element.type !== 'checkbox') {
+                    element.value = savedValue;
+                } else if (element.type === 'checkbox' && savedValue !== null) {
+                    element.checked = savedValue === 'true';
+                }
+                
+                // Save values on change
+                element.addEventListener('change', function() {
+                    if (this.type === 'checkbox') {
+                        localStorage.setItem(`thumbnail_gen_${this.id}`, this.checked);
+                    } else {
+                        localStorage.setItem(`thumbnail_gen_${this.id}`, this.value);
+                    }
+                });
+            });
+            
+            // Character counters
+            addCharacterCounter('videoTopic', 100);
+            addCharacterCounter('additionalElements', 200);
+        });
+        
+        function addCharacterCounter(elementId, maxLength) {
+            const element = document.getElementById(elementId);
+            const counter = document.createElement('small');
+            counter.style.cssText = 'color: #666; float: right; margin-top: 4px; font-size: 12px;';
+            counter.textContent = `0/${maxLength}`;
+            element.parentNode.appendChild(counter);
+            
+            element.addEventListener('input', function() {
+                const length = this.value.length;
+                counter.textContent = `${length}/${maxLength}`;
+                
+                if (length > maxLength * 0.9) {
+                    counter.style.color = '#dc2626';
+                } else if (length > maxLength * 0.7) {
+                    counter.style.color = '#f59e0b';
+                } else {
+                    counter.style.color = '#666';
+                }
+            });
+        }
+
+        // Add character counters
+        document.addEventListener('DOMContentLoaded', function() {
+            addCharacterCounter('videoTopic', 100);
+            addCharacterCounter('additionalElements', 200);
+        });
+    </script>
+</body>
+</html>
