@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Video Script Generator - AI-Powered Content Creation with thumbnail</title>
+    <title>YouTube Video Script Generator - AI-Powered Content Creation with thumbnail by Growwh.com</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -803,7 +803,8 @@
                 <label for="videoLength">Video Duration *</label>
                 <select id="videoLength" required>
                     <option value="">Select Duration</option>
-                    <option value="short">Short (2-5 minutes)</option>
+                    <option value="shorts">Shorts (Under 60s)</option>
+                    <option value="short">Short (1-5 minutes)</option>
                     <option value="medium">Medium (5-15 minutes)</option>
                     <option value="long">Long (15+ minutes)</option>
                 </select>
@@ -875,11 +876,18 @@
     </div>
 
     <script>
+        // Best practice: Store API keys securely, not in client-side code.
+        // For this example, we'll use a placeholder.
+        const Z_AI_API_KEY = 'aba57205f9ae4c31b3fc38437a622663.kv5mgJtBBnrQqPgT'; // Replace with your actual key
+
         let currentStep = 1;
         let selectedTopic = '';
         let suggestedTopics = [];
         let generatedContent = '';
         let thumbnailImageUrl = '';
+        // FIX 1: Declare generatedTitle and generatedSubtitle as global variables
+        let generatedTitle = '';
+        let generatedSubtitle = '';
 
         function updateStep(step) {
             for (let i = 1; i <= 4; i++) {
@@ -895,6 +903,7 @@
         }
 
         async function getSuggestions() {
+            const getSuggestionsButton = document.getElementById('getSuggestionsBtn');
 
             const mainTopic = document.getElementById('mainTopic').value.trim();
             const videoStyle = document.getElementById('videoStyle').value;
@@ -910,7 +919,7 @@
             
             document.getElementById('info-card').style.display = 'none';
             document.getElementById('setupForm').style.display = 'none';
-            document.getElementById('getSuggestionsBtn').style.display = 'none';
+            getSuggestionsButton.style.display = 'none';
 
             const resultContainer = document.getElementById('resultContainer');
             const suggestionsContainer = document.getElementById('suggestionsContainer');
@@ -925,7 +934,9 @@
             `;
             
             try {
-                event.target.style.display = 'none';
+                // FIX 2: Reference the button by its ID instead of a non-existent 'event' object
+                getSuggestionsButton.style.display = 'none';
+
                 const specificKeywords = document.getElementById('specificKeywords').value;
                 const additionalContext = document.getElementById('additionalContext').value;
                 
@@ -964,7 +975,7 @@ IMPORTANT: Respond ONLY with a valid JSON array. No other text or markdown. Use 
                 const response = await fetch("https://api.z.ai/api/paas/v4/chat/completions", {
                     method: "POST",
                     headers: {
-                        "Authorization": `Bearer aba57205f9ae4c31b3fc38437a622663.kv5mgJtBBnrQqPgT`, // store key in env
+                        "Authorization": `Bearer ${Z_AI_API_KEY}`,
                         "Accept-Language": "en-US,en",
                         "Content-Type": "application/json",
                     },
@@ -1030,7 +1041,7 @@ IMPORTANT: Respond ONLY with a valid JSON array. No other text or markdown. Use 
             suggestedTopics.forEach(topic => {
                 const potentialColor = topic.potential === 'High' ? '#10b981' : topic.potential === 'Medium' ? '#f59e0b' : '#6b7280';
                 suggestionsHtml += `
-                    <div class="topic-card" onclick="selectTopic(${topic.id})">
+                    <div class="topic-card" onclick="selectTopic(event, ${topic.id})">
                         <h4>${topic.title}</h4>
                         <p>${topic.description}</p>
                         <div class="hook-preview">"${topic.hook}"</div>
@@ -1055,12 +1066,12 @@ IMPORTANT: Respond ONLY with a valid JSON array. No other text or markdown. Use 
             container.innerHTML = suggestionsHtml;
         }
         
-        function selectTopic(topicId) {
+        function selectTopic(event, topicId) {
             document.querySelectorAll('.topic-card').forEach(card => {
                 card.classList.remove('selected');
             });
             
-            event.target.closest('.topic-card').classList.add('selected');
+            event.currentTarget.classList.add('selected');
             
             selectedTopic = suggestedTopics[topicId];
             
@@ -1099,13 +1110,10 @@ IMPORTANT: Respond ONLY with a valid JSON array. No other text or markdown. Use 
                 const specificKeywords = document.getElementById('specificKeywords').value;
                 const additionalContext = document.getElementById('additionalContext').value;
                 
-                // Generate featured image prompt using AI
                 const imagePromptQuery = `Generate a creative and professional image prompt for a youtube thumbnail background for a video on ${selectedTopic.title} about ${mainTopic}. The prompt should describe a high-quality, vibrant colors, high contrast, eye-catching, modern design, clickbait style. Keep it under 100 characters and focus on visual elements, colors, and composition. Background image shall only include the subject with no text or logos.`;
-
                 const imagePromptResponse = await fetch(`https://text.pollinations.ai/${encodeURIComponent(imagePromptQuery)}`);
                 const thumbnailPrompt = await imagePromptResponse.text();
                 
-                // Generate script content
                 let scriptPrompt = `Create a complete YouTube video script for:
 
 TITLE: ${selectedTopic.title}
@@ -1119,7 +1127,6 @@ SAMPLE HOOK: ${selectedTopic.hook}`;
                 if (specificKeywords) {
                     scriptPrompt += `\nKEYWORDS: ${specificKeywords}`;
                 }
-
                 if (additionalContext) {
                     scriptPrompt += `\nCONTEXT: ${additionalContext}`;
                 }
@@ -1130,7 +1137,6 @@ SAMPLE HOOK: ${selectedTopic.hook}`;
 3. Main Content (Well-structured sections)
 4. Engagement Prompts (Like, Subscribe, Comment)
 5. Call-to-Action & Outro
-
 ##REQUIREMENTS:
 - Start with the provided hook or similar
 - Include retention techniques (pattern interrupts, previews)
@@ -1140,14 +1146,12 @@ SAMPLE HOOK: ${selectedTopic.hook}`;
 - Add visual/editing cues in [brackets]
 - Include timestamps for longer videos
 - End with strong CTA
-
 ##OUTPUT FORMAT:
 Format as clean HTML with proper headings and sections. Include:
 - Special styling for the HOOK section
 - Clear section divisions
 - Visual/editing notes in italics
 - Engagement prompts highlighted
-
 ##IMPORTANT INSTRUCTIONS:
 - Format the entire output as a single block of clean, well-structured HTML.
 - Use appropriate HTML tags: <h1> for the main title, <h2> for main sections, <h3> for subsections, <p> for paragraphs, <ul> and <li> for bullet points, <blockquote> for quotes, etc.
@@ -1157,13 +1161,13 @@ Format as clean HTML with proper headings and sections. Include:
 
                 console.log("Starting thumbnail and script generation...");
 
-                const [thumbnailUrl, scriptHTML] = await Promise.all([
+                // FIX 3: Assign results to global variables by removing 'const'
+                [thumbnailImageUrl, generatedContent, generatedTitle, generatedSubtitle] = await Promise.all([
                     generateThumbnailImage(thumbnailPrompt),
-                    generateScriptFromPrompt(scriptPrompt)
+                    generateScriptFromPrompt(scriptPrompt),
+                    fetch(`https://text.pollinations.ai/${encodeURIComponent(`Create a captivating title for a YouTube video about ${selectedTopic.title}. It shall be clickbait optimized`)}`).then(res => res.text()),
+                    fetch(`https://text.pollinations.ai/${encodeURIComponent(`Create a captivating subtitle of 2-3 words for a YouTube video about ${selectedTopic.title}`)}`).then(res => res.text())
                 ]);
-
-                thumbnailImageUrl = thumbnailUrl;
-                generatedContent = scriptHTML;
 
                 displayResults();
                 updateStep(4);
@@ -1200,7 +1204,7 @@ Format as clean HTML with proper headings and sections. Include:
                 }
                 throw new Error(`Flux model failed: ${fluxResponse.status}`);
             } catch (error) {
-                console.warn(`Primary model failed, trying fallback...`);
+                console.warn(`Primary model failed, trying fallback...`, error);
                 const turboUrl = makeUrl("turbo");
                 
                 const turboResponse = await fetch(turboUrl);
@@ -1216,7 +1220,7 @@ Format as clean HTML with proper headings and sections. Include:
             const response = await fetch("https://api.z.ai/api/paas/v4/chat/completions", {
                 method: "POST",
                 headers: {
-                    "Authorization": `Bearer aba57205f9ae4c31b3fc38437a622663.kv5mgJtBBnrQqPgT`, // store key in env
+                    "Authorization": `Bearer ${Z_AI_API_KEY}`,
                     "Accept-Language": "en-US,en",
                     "Content-Type": "application/json",
                 },
@@ -1231,7 +1235,6 @@ Format as clean HTML with proper headings and sections. Include:
                 }),
             });
 
-
             if (!response.ok) throw new Error(`Script API request failed: ${response.status}`);
 
             const data = await response.json();
@@ -1243,9 +1246,9 @@ Format as clean HTML with proper headings and sections. Include:
         function displayResults() {
             const container = document.getElementById('resultContainer');
             
-            // Extract title for thumbnail
-            const thumbnailTitle = selectedTopic.title.toUpperCase();
-            const thumbnailSubtitle = document.getElementById('mainTopic').value.toUpperCase();
+            // This will now work because generatedTitle and generatedSubtitle are global
+            const thumbnailTitle = generatedTitle.toUpperCase();
+            const thumbnailSubtitle = generatedSubtitle.toUpperCase();
             
             const resultHtml = `
                 <div class="youtube-container">
@@ -1286,28 +1289,18 @@ Format as clean HTML with proper headings and sections. Include:
             try {
                 showToast('Generating thumbnail download...', 'success');
                 
-                // 1. Target the correct element that contains the visual content.
                 const thumbnailElement = document.getElementById('thumbnailCanvas');
-                
-                // 2. Use html2canvas to capture the element as a high-quality source canvas.
-                // We let it capture at the element's natural aspect ratio but increase the scale for quality.
                 const sourceCanvas = await html2canvas(thumbnailElement, {
                     backgroundColor: '#000000',
-                    scale: 2, // Capture at 2x resolution for better quality
+                    scale: 2,
                     useCORS: true
                 });
-
-                // 3. Create a new, blank canvas with the final desired dimensions (1280x720).
                 const finalCanvas = document.createElement('canvas');
                 finalCanvas.width = 1280;
                 finalCanvas.height = 720;
                 const ctx = finalCanvas.getContext('2d');
 
-                // 4. Draw the captured image (sourceCanvas) onto the final canvas.
-                // The drawImage function will scale the source to fit the destination dimensions perfectly.
                 ctx.drawImage(sourceCanvas, 0, 0, finalCanvas.width, finalCanvas.height);
-
-                // 5. Create a download link from the final, correctly sized canvas.
                 const link = document.createElement('a');
                 link.download = `${selectedTopic.title.replace(/[^a-z0-9\s]/gi, '').replace(/\s+/g, '_').toLowerCase()}_thumbnail.png`;
                 link.href = finalCanvas.toDataURL('image/png');
@@ -1334,18 +1327,18 @@ Format as clean HTML with proper headings and sections. Include:
         }
         
         function startOver() {
-            const confirm = window.confirm('Are you sure you want to start over? This will clear all current progress.');
-            if (confirm) {
+            const confirmRestart = window.confirm('Are you sure you want to start over? This will clear all current progress.');
+            if (confirmRestart) {
                 document.querySelectorAll('#setupForm input, #setupForm select, #setupForm textarea').forEach(element => {
                     element.value = '';
-                    element.selectedIndex = 0;
+                    if(element.tagName === 'SELECT') {
+                       element.selectedIndex = 0;
+                    }
                 });
                 
                 document.getElementById('info-card').style.display = '';
-                document.getElementById('setupForm').style.display = '';
-                document.getElementById('suggestionsContainer').style.display = '';
-                document.getElementById('getSuggestionsBtn').style.display = '';
-                document.getElementById('generateContentBtn').style.display = '';
+                document.getElementById('setupForm').style.display = 'grid';
+                document.getElementById('getSuggestionsBtn').style.display = 'block';
 
                 document.getElementById('suggestionsContainer').innerHTML = '';
                 document.getElementById('resultContainer').innerHTML = '';
@@ -1354,6 +1347,8 @@ Format as clean HTML with proper headings and sections. Include:
                 suggestedTopics = [];
                 generatedContent = '';
                 thumbnailImageUrl = '';
+                generatedTitle = '';
+                generatedSubtitle = '';
                 
                 updateStep(1);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1405,17 +1400,19 @@ Format as clean HTML with proper headings and sections. Include:
                     const maxLength = input.getAttribute('maxlength');
                     const counter = document.createElement('small');
                     counter.style.cssText = 'color: #666; float: right; margin-top: 4px;';
-                    counter.textContent = `0/${maxLength}`;
-                    input.parentNode.appendChild(counter);
                     
-                    input.addEventListener('input', function() {
-                        counter.textContent = `${this.value.length}/${maxLength}`;
-                        if (this.value.length > maxLength * 0.9) {
+                    const updateCounter = () => {
+                        counter.textContent = `${input.value.length}/${maxLength}`;
+                        if (input.value.length > maxLength * 0.9) {
                             counter.style.color = '#dc2626';
                         } else {
                             counter.style.color = '#666';
                         }
-                    });
+                    };
+
+                    input.parentNode.appendChild(counter);
+                    input.addEventListener('input', updateCounter);
+                    updateCounter(); // Initial update on load
                 }
             });
         });
