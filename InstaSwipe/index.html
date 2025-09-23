@@ -898,11 +898,11 @@
         async function callTextAPI(prompt, retries = 3) {
             for (let attempt = 1; attempt <= retries; attempt++) {
                 try {
-                    const encodedPrompt = prompt;
+                    const aiPrompt = prompt;
                     const response = await fetch("https://api.z.ai/api/paas/v4/chat/completions", {
                         method: "POST",
                         headers: {
-                            "Authorization": `Bearer 77a20150872e4e3fb38743b6357af06e.9B8lVOSCNgOh8L2Q`, // store key in env
+                            "Authorization": `Bearer aba57205f9ae4c31b3fc38437a622663.kv5mgJtBBnrQqPgT`, // store key in env
                             "Accept-Language": "en-US,en",
                             "Content-Type": "application/json",
                         },
@@ -911,7 +911,7 @@
                             messages: [
                                 {
                                 role: "user",
-                                content: encodedPrompt,
+                                content: aiPrompt,
                                 },
                             ],
                         }),
