@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Content Calendar Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700;800;900&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Custom Styles */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: transparent;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Inter', sans-serif;
+        }
+        .card-shadow {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .metric-card {
+            transition: transform 0.2s ease-in-out;
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+        }
+        .input-field {
+            transition: all 0.3s ease;
+            border: 1px solid #e5e7eb;
+            background-color: #f9fafb;
+        }
+        .input-field:focus {
+            border-color: #A78BFA;
+            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.1);
+            outline: none;
+            background-color: #ffffff;
+        }
+        .btn-generate-ai {
+            background-color: #693ab7;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(105, 58, 183, 0.25);
+        }
+        .btn-generate-ai:hover {
+            transform: translateY(-2px);
+            background-color: #5a319a;
+            box-shadow: 0 10px 25px rgba(105, 58, 183, 0.3);
+        }
+        .loading-spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #ffffff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Content type card colors */
+        .post-bg { background: #3B82F6; } /* Blue */
+        .story-bg { background: #EC4899; } /* Pink */
+        .reel-bg { background: #6366F1; } /* Indigo */
+        .video-bg { background: #14B8A6; } /* Teal */
+        .live-bg { background: #EF4444; } /* Red */
+        .collab-bg { background: #22C55E; } /* Green */
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        
+        <!-- Header Section -->
+        <div class="text-center mb-8">
+            <div class="inline-block p-3 mb-4 bg-gradient-to-br from-[#8664cf] to-[#693ab7] rounded-xl shadow-lg">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2z"></path></svg>
+            </div>
+            <h1 class="text-3xl md:text-4xl font-black bg-gradient-to-r from-[#693ab7] to-[#270a47] bg-clip-text text-transparent mb-2">
+                Content Calendar Generator
+            </h1>
+            <p class="text-gray-600 max-w-2xl mx-auto">
+                Create engaging content calendars for Instagram & YouTube with AI-powered suggestions tailored for Indian creators.
+            </p>
+        </div>
+
+        <div class="space-y-6">
+            <!-- Top Grid for Inputs and Content Types -->
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                
+                <!-- Input Section (takes 3 columns on large screens) -->
+                <div class="lg:col-span-3 bg-white rounded-2xl card-shadow p-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs font-medium text-gray-500">Niche/Category</label>
+                            <select id="niche" class="w-full mt-1 p-2 input-field rounded-md text-gray-800 font-semibold" onchange="generateContentMix()">
+                                <option value="">Select your niche</option>
+                                <option value="lifestyle">Lifestyle</option>
+                                <option value="food">Food & Cooking</option>
+                                <option value="fashion">Fashion & Beauty</option>
+                                <option value="tech">Tech & Gadgets</option>
+                                <option value="fitness">Fitness & Health</option>
+                                <option value="travel">Travel</option>
+                                <option value="education">Education</option>
+                                <option value="comedy">Comedy & Entertainment</option>
+                                <option value="business">Business & Finance</option>
+                                <option value="photography">Photography</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-medium text-gray-500">Target Audience</label>
+                            <select id="audience" class="w-full mt-1 p-2 input-field rounded-md text-gray-800 font-semibold" onchange="generateContentMix()">
+                                <option value="">Select audience</option>
+                                <option value="teen">Teenagers (13-17)</option>
+                                <option value="young_adult">Young Adults (18-25)</option>
+                                <option value="millennial">Millennials (26-35)</option>
+                                <option value="gen_x">Gen X (36-50)</option>
+                                <option value="mixed">Mixed Age Group</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-medium text-gray-500">Content Language</label>
+                            <select id="language" class="w-full mt-1 p-2 input-field rounded-md text-gray-800 font-semibold" onchange="generateContentMix()">
+                                <option value="">Select language</option>
+                                <option value="english">English</option>
+                                <option value="hindi">Hindi</option>
+                                <option value="hinglish">Hinglish</option>
+                                <option value="regional">Regional Languages</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-medium text-gray-500">Primary Platform</label>
+                            <select id="platform" class="w-full mt-1 p-2 input-field rounded-md text-gray-800 font-semibold" onchange="generateContentMix()">
+                                <option value="">Select platform</option>
+                                <option value="instagram">Instagram</option>
+                                <option value="youtube">YouTube</option>
+                                <option value="both">Instagram + YouTube</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-medium text-gray-500">Posts per Week</label>
+                            <input type="number" id="postsPerWeek" class="w-full mt-1 p-2 input-field rounded-md text-gray-800 font-semibold" min="1" max="21" value="7" oninput="generateContentMix()" />
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-medium text-gray-500">Calendar Duration</label>
+                            <select id="duration" class="w-full mt-1 p-2 input-field rounded-md text-gray-800 font-semibold" onchange="generateContentMix()">
+                                <option value="1">1 Week</option>
+                                <option value="2">2 Weeks</option>
+                                <option value="4" selected>1 Month</option>
+                                <option value="8">2 Months</option>
+                            </select>
+                        </div>
+                        
+                        <div class="sm:col-span-2">
+                             <label class="text-xs font-medium text-gray-500">Special Focus (Optional)</label>
+                             <input type="text" id="specialFocus" placeholder="e.g., Diwali content, New Year, Product launch" class="w-full mt-1 p-2 input-field rounded-md text-gray-800 font-semibold" oninput="generateContentMix()" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content Mix Section (takes 2 columns on large screens) -->
+                <div class="lg:col-span-2 bg-white rounded-2xl card-shadow p-6">
+                     <h3 class="text-sm font-semibold text-gray-700 mb-3">Recommended Content Mix</h3>
+                     <div class="grid grid-cols-2 gap-3">
+                        <div class="metric-card rounded-xl p-3 text-white text-center post-bg">
+                            <div class="text-xs opacity-90">Posts</div>
+                            <div class="text-xl font-bold" id="postsCount">0</div>
+                        </div>
+
+                        <div class="metric-card rounded-xl p-3 text-white text-center story-bg">
+                            <div class="text-xs opacity-90">Stories</div>
+                            <div class="text-xl font-bold" id="storiesCount">0</div>
+                        </div>
+
+                        <div class="metric-card rounded-xl p-3 text-white text-center reel-bg">
+                            <div class="text-xs opacity-90">Reels/Shorts</div>
+                            <div class="text-xl font-bold" id="reelsCount">0</div>
+                        </div>
+
+                        <div class="metric-card rounded-xl p-3 text-white text-center video-bg">
+                            <div class="text-xs opacity-90">Long Videos</div>
+                            <div class="text-xl font-bold" id="videosCount">0</div>
+                        </div>
+
+                        <div class="metric-card rounded-xl p-3 text-white text-center live-bg">
+                            <div class="text-xs opacity-90">Live Sessions</div>
+                            <div class="text-xl font-bold" id="liveCount">0</div>
+                        </div>
+
+                        <div class="metric-card rounded-xl p-3 text-white text-center collab-bg">
+                            <div class="text-xs opacity-90">Collaborations</div>
+                            <div class="text-xl font-bold" id="collabCount">0</div>
+                        </div>
+                    </div>
+
+                    <div id="totalContentSection" class="mt-4 p-3 bg-purple-50 rounded-lg">
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-purple-700 font-medium">Total Content Pieces:</span>
+                            <span class="text-purple-900 font-bold text-base" id="totalContent">0</span>
+                        </div>
+                        <div class="text-xs text-purple-600 mt-1" id="contentDescription">
+                            For selected duration
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Tips Section -->
+            <div id="quickTipsSection" class="bg-white rounded-2xl card-shadow p-6 hidden">
+                <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                    <svg class="w-5 h-5 text-purple-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                    Content Strategy Tips
+                </h2>
+                <div id="quickTipsContent" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Quick tips will be populated here -->
+                </div>
+            </div>
+
+            <!-- Generate AI Calendar Button -->
+            <div>
+                 <button 
+                    id="generateCalendarBtn" 
+                    class="w-full btn-generate-ai text-white font-bold py-4 px-6 rounded-2xl flex items-center justify-center space-x-3 text-lg"
+                    onclick="generateAICalendar()" 
+                >
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2z"></path></svg>
+                    <span id="generateBtnText">Generate AI Content Calendar</span>
+                    <div id="loadingSpinner" class="loading-spinner hidden"></div>
+                </button>
+            </div>
+            
+             <!-- AI Calendar Section -->
+             <div id="aiCalendarSection" class="bg-white rounded-2xl card-shadow p-6 hidden">
+                <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                    <svg class="w-5 h-5 text-purple-600 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M12.85,3.18L13.06,4.78C14,5.09 14.86,5.58 15.61,6.2L17.2,5.75L18.66,8.1L17.43,9.15C17.5,9.75 17.5,10.38 17.43,11L18.66,12.06L17.2,14.41L15.61,13.95C14.86,14.58 14,15.06 13.06,15.37L12.85,17H11.15L10.94,15.37C10,15.06 9.14,14.58 8.39,13.95L6.8,14.41L5.34,12.06L6.57,11C6.5,10.38 6.5,9.75 6.57,9.15L5.34,8.1L6.8,5.75L8.39,6.2C9.14,5.58 10,5.09 10.94,4.78L11.15,3.18M12,8.13A4,4 0 0,0 8,12.13A4,4 0 0,0 12,16.13A4,4 0 0,0 16,12.13A4,4 0 0,0 12,8.13Z"></path></svg>
+                    Your AI-Generated Content Calendar
+                </h2>
+                <div id="aiCalendarContent" class="space-y-4">
+                    <!-- AI calendar will be populated here -->
+                </div>
+                
+                <!-- Download Section -->
+                <div id="downloadSection" class="mt-6 pt-6 border-t border-gray-200 hidden">
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <button 
+                            id="downloadExcelBtn" 
+                            onclick="downloadExcel()" 
+                            class="flex-1 sm:flex-none bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
+                        >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <span>Download as Excel</span>
+                        </button>
+                        <button 
+                            onclick="startOver()" 
+                            class="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
+                        >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                            </svg>
+                            <span>Start Over</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        const Z_AI_API_KEY = 'aba57205f9ae4c31b3fc38437a622663.kv5mgJtBBnrQqPgT'; // Replace with your actual key
+
+        let currentSettings = {}; 
+        let currentCalendarData = null; // Store calendar data for download
+
+        async function callTextAPI(prompt, retries = 3) {
+            for (let attempt = 1; attempt <= retries; attempt++) {
+                try {
+                    const aiPrompt = prompt;
+                    
+                    const response = await fetch("https://api.z.ai/api/paas/v4/chat/completions", {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `Bearer aba57205f9ae4c31b3fc38437a622663.kv5mgJtBBnrQqPgT`, // store key in env
+                            "Accept-Language": "en-US,en",
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            model: "glm-4.5-flash",
+                            messages: [
+                                {
+                                role: "user",
+                                content: aiPrompt,
+                                },
+                            ],
+                        }),
+                    });
+
+                    if (!response.ok) throw new Error(`API responded with status: ${response.status}`);
+                    
+                    const raw = await response.json();
+                    const data = raw.choices?.[0]?.message?.content || "";
+                    return data;
+                } catch (error) {
+                    console.error(`API attempt ${attempt} failed:`, error);
+                    if (attempt === retries) throw new Error(`Failed to get AI calendar after ${retries} attempts: ${error.message}`);
+                }
+            }
+        }
+
+        function generateContentMix() {
+            const niche = document.getElementById('niche').value;
+            const audience = document.getElementById('audience').value;
+            const language = document.getElementById('language').value;
+            const platform = document.getElementById('platform').value;
+            const postsPerWeek = parseInt(document.getElementById('postsPerWeek').value) || 7;
+            const duration = parseInt(document.getElementById('duration').value) || 4;
+            const specialFocus = document.getElementById('specialFocus').value;
+
+            currentSettings = {
+                niche, audience, language, platform, postsPerWeek, duration, specialFocus
+            };
+
+            const totalWeeks = duration;
+            const totalPosts = postsPerWeek * totalWeeks;
+
+            // Calculate content mix based on platform and niche
+            let contentMix = calculateContentMix(platform, niche, totalPosts);
+
+            updateContentMixUI(contentMix, totalPosts, duration);
+            generateQuickTips();
+        }
+
+        function calculateContentMix(platform, niche, totalPosts) {
+            let mix = {
+                posts: 0, stories: 0, reels: 0, videos: 0, live: 0, collab: 0
+            };
+
+            // Base distribution percentages
+            let distribution = {};
+            
+            if (platform === 'instagram') {
+                distribution = { reels: 0.35, stories: 0.35, posts: 0.20, live: 0.07, collab: 0.03 };
+            } else if (platform === 'youtube') {
+                distribution = { reels: 0.40, videos: 0.45, posts: 0.10, live: 0.03, collab: 0.02 };
+            } else if (platform === 'both') {
+                distribution = { reels: 0.35, videos: 0.25, posts: 0.15, stories: 0.15, live: 0.07, collab: 0.03 };
+            }
+
+            // Calculate initial amounts
+            Object.keys(distribution).forEach(key => {
+                mix[key] = Math.round(totalPosts * distribution[key]);
+            });
+
+            // Apply niche adjustments
+            if (niche === 'food' || niche === 'fashion') {
+                mix.reels = Math.min(mix.reels + 1, totalPosts);
+                mix.stories = Math.min(mix.stories + 1, totalPosts);
+                mix.posts = Math.max(0, mix.posts - 1);
+            } else if (niche === 'education') {
+                mix.videos = Math.min(mix.videos + 1, totalPosts);
+                mix.posts = Math.min(mix.posts + 1, totalPosts);
+                mix.stories = Math.max(0, mix.stories - 1);
+            } else if (niche === 'comedy') {
+                mix.reels = Math.min(mix.reels + 2, totalPosts);
+                mix.posts = Math.max(0, mix.posts - 1);
+            }
+
+            // Ensure total equals totalPosts
+            const currentTotal = Object.values(mix).reduce((a, b) => a + b, 0);
+            const difference = totalPosts - currentTotal;
+            
+            if (difference > 0) {
+                // Add to reels if we're short
+                mix.reels += difference;
+            } else if (difference < 0) {
+                // Remove from largest category if we're over
+                const largest = Object.keys(mix).reduce((a, b) => mix[a] > mix[b] ? a : b);
+                mix[largest] = Math.max(0, mix[largest] + difference);
+            }
+
+            return mix;
+        }
+
+        function updateContentMixUI(mix, total, duration) {
+            document.getElementById('postsCount').textContent = mix.posts;
+            document.getElementById('storiesCount').textContent = mix.stories;
+            document.getElementById('reelsCount').textContent = mix.reels;
+            document.getElementById('videosCount').textContent = mix.videos;
+            document.getElementById('liveCount').textContent = mix.live;
+            document.getElementById('collabCount').textContent = mix.collab;
+
+            const actualTotal = Object.values(mix).reduce((a, b) => a + b, 0);
+            document.getElementById('totalContent').textContent = actualTotal;
+            
+            const durationText = duration === 1 ? '1 week' : duration === 2 ? '2 weeks' : 
+                                duration === 4 ? '1 month' : '2 months';
+            document.getElementById('contentDescription').textContent = `For ${durationText} (${currentSettings.postsPerWeek} posts/week)`;
+        }
+        
+        function generateQuickTips() {
+            const tipsContent = document.getElementById('quickTipsContent');
+            const tipsSection = document.getElementById('quickTipsSection');
+            tipsContent.innerHTML = '';
+
+            if (!currentSettings.niche) {
+                tipsSection.classList.add('hidden');
+                return;
+            }
+            
+            const tips = getTipsForNiche(currentSettings.niche, currentSettings.platform, currentSettings.audience);
+            
+            tips.forEach(tip => tipsContent.appendChild(createTipCard(tip)));
+            tipsSection.classList.remove('hidden');
+        }
+
+        function getTipsForNiche(niche, platform, audience) {
+            const baseTips = [
+                {
+                    type: 'success',
+                    title: 'Best Posting Times',
+                    message: audience === 'teen' ? 'Post between 3-6 PM and 7-10 PM for teen engagement' :
+                             audience === 'young_adult' ? 'Peak hours: 6-9 AM and 7-11 PM for young adults' :
+                             'General optimal times: 8-10 AM and 6-9 PM',
+                    icon: '⏰'
+                }
+            ];
+
+            const nicheTips = {
+                food: [
+                    { type: 'info', title: 'Food Photography', message: 'Use natural lighting and colorful ingredients. Share recipe reels with trending audio.', icon: '📸' },
+                    { type: 'warning', title: 'Regional Preferences', message: 'Include both North & South Indian dishes. Vegetarian options get higher engagement.', icon: '🌶️' }
+                ],
+                fashion: [
+                    { type: 'info', title: 'Trend Awareness', message: 'Follow Indian fashion weeks and festivals. Mix affordable and premium brands.', icon: '👗' },
+                    { type: 'success', title: 'Festival Content', message: 'Plan content around Diwali, weddings, and festive seasons for maximum reach.', icon: '✨' }
+                ],
+                lifestyle: [
+                    { type: 'info', title: 'Authentic Stories', message: 'Share genuine daily routines. Indian audiences love relatable content.', icon: '🏠' },
+                    { type: 'success', title: 'Cultural Connect', message: 'Include family moments and traditional celebrations for better engagement.', icon: '👨‍👩‍👧‍👦' }
+                ],
+                tech: [
+                    { type: 'info', title: 'Value-focused', message: 'Focus on budget-friendly tech and "best under ₹X" content for Indian market.', icon: '📱' },
+                    { type: 'warning', title: 'Language Mix', message: 'Use Hinglish for better reach. Explain technical terms in simple language.', icon: '🗣️' }
+                ]
+            };
+
+            const platformTips = {
+                instagram: [
+                    { type: 'success', title: 'Instagram Strategy', message: 'Use Instagram Reels for maximum reach. Stories for daily engagement.', icon: '📱' }
+                ],
+                youtube: [
+                    { type: 'info', title: 'YouTube Focus', message: 'Create educational long-form content. Use YouTube Shorts for trending topics.', icon: '🎥' }
+                ],
+                both: [
+                    { type: 'warning', title: 'Cross-platform', message: 'Repurpose content smartly. What works on Reels can work as YouTube Shorts.', icon: '🔄' }
+                ]
+            };
+
+            return [...baseTips, ...(nicheTips[niche] || []), ...(platformTips[platform] || [])];
+        }
+
+        function createTipCard(tip) {
+            const card = document.createElement('div');
+            let borderColor = 'border-blue-400', bgColor = 'bg-blue-50', textColor = 'text-blue-800';
+            
+            switch (tip.type) {
+                case 'success':
+                    borderColor = 'border-green-400'; bgColor = 'bg-green-50'; textColor = 'text-green-800'; break;
+                case 'warning':
+                    borderColor = 'border-yellow-400'; bgColor = 'bg-yellow-50'; textColor = 'text-yellow-800'; break;
+                case 'info':
+                    borderColor = 'border-blue-400'; bgColor = 'bg-blue-50'; textColor = 'text-blue-800'; break;
+            }
+
+            card.className = `${bgColor} p-4 rounded-lg border-l-4 ${borderColor}`;
+            card.innerHTML = `
+                <div class="flex items-center ${textColor} font-semibold mb-2 text-sm">
+                    <span class="text-lg mr-2">${tip.icon}</span>
+                    <span>${tip.title}</span>
+                </div>
+                <p class="text-sm text-gray-600">${tip.message}</p>`;
+            return card;
+        }
+
+        async function generateAICalendar() {
+            const btn = document.getElementById('generateCalendarBtn');
+            const btnText = document.getElementById('generateBtnText');
+            const spinner = document.getElementById('loadingSpinner');
+            const calendarSection = document.getElementById('aiCalendarSection');
+            const contentMix = calculateContentMix(currentSettings.platform, currentSettings.niche, currentSettings.postsPerWeek * currentSettings.duration)
+
+            if (!currentSettings.niche || !currentSettings.platform) {
+                alert('Please select your niche and platform first to generate a content calendar.');
+                return;
+            }
+
+            btn.disabled = true;
+            btnText.textContent = 'Generating Calendar...';
+            spinner.classList.remove('hidden');
+            calendarSection.classList.add('hidden');
+
+            try {
+
+                const currentDate = new Date().toLocaleDateString('en-IN', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+
+                const prompt = `Create a detailed content calendar for an Indian ${currentSettings.niche} creator on ${currentSettings.platform}. 
+
+Current Date: ${currentDate}
+
+Settings:
+- Duration: ${currentSettings.duration} weeks
+- Posts per week: ${currentSettings.postsPerWeek}
+- Target audience: ${currentSettings.audience}
+- Language: ${currentSettings.language}
+- Special focus: ${currentSettings.specialFocus || 'General content'}
+
+IMPORTANT - Follow this EXACT content distribution in a selected duration:
+- Posts: ${contentMix.posts} in total
+- Stories: ${contentMix.stories} in total
+- Reels/Shorts: ${contentMix.reels} in total
+- Long Videos: ${contentMix.videos} in total
+- Live Sessions: ${contentMix.live} in total
+- Collaborations: ${contentMix.collab} in total
+Total: ${Object.values(contentMix).reduce((a, b) => a + b, 0)} pieces of content in total.
+
+CRITICAL RULES:
+1. Distribute content across 7 days of the week (Monday-Sunday) with each week having a mix of content types with no more than 2 pieces of the same type on a single day.
+2. Use the EXACT numbers specified above for each content type (Posts, Stories, Reels, Videos, Live, Collaborations) i.e. say 4 Posts for 4 weeks means 1 Post per week.
+3. Spread content evenly across all ${currentSettings.duration} weeks
+4. Each week should have approximately ${currentSettings.postsPerWeek} pieces of content
+
+Respond ONLY with a valid JSON object in this exact format:
+{
+  "calendar": [
+    {
+      "week": 1,
+      "content": [
+        {
+          "day": "Monday",
+          "contentType": "Post/Story/Reel/Video/Live",
+          "title": "Engaging title",
+          "description": "Brief description of content",
+          "hashtags": ["#tag1", "#tag2", "#tag3"],
+          "tips": "Content creation tips"
+        }
+      ]
+    }
+  ],
+  "monthlyThemes": ["Theme 1", "Theme 2"],
+  "keyDates": ["Important dates to remember"]
+}
+
+Make it culturally relevant for Indian audiences with local festivals, trends, and preferences. Do not include any text before or after the JSON.`;
+                
+                const aiResponseText = await callTextAPI(prompt);
+                displayAICalendar(aiResponseText);
+                calendarSection.classList.remove('hidden');
+            } catch (error) {
+                console.error('Error generating AI calendar:', error);
+                const content = document.getElementById('aiCalendarContent');
+                content.innerHTML = `<div class="p-4 rounded-lg bg-red-50 border-l-4 border-red-400 text-red-800">Failed to generate AI calendar: ${error.message}</div>`;
+                calendarSection.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btnText.textContent = 'Generate AI Content Calendar';
+                spinner.classList.add('hidden');
+            }
+        }
+
+        function displayAICalendar(rawResponseText) {
+            const content = document.getElementById('aiCalendarContent');
+            const downloadSection = document.getElementById('downloadSection');
+            content.innerHTML = '';
+            
+            try {
+                const jsonMatch = rawResponseText.match(/\{[\s\S]*\}/);
+                if (!jsonMatch) throw new Error("No JSON object found in the AI response.");
+                const cleanedText = jsonMatch[0];
+                const calendarData = JSON.parse(cleanedText);
+                
+                // Store calendar data for download
+                currentCalendarData = calendarData;
+
+                if (calendarData.calendar && Array.isArray(calendarData.calendar)) {
+                    // Display monthly themes if available
+                    if (calendarData.monthlyThemes && calendarData.monthlyThemes.length > 0) {
+                        const themesDiv = document.createElement('div');
+                        themesDiv.className = 'mb-6 p-4 bg-purple-50 rounded-lg border-l-4 border-purple-400';
+                        themesDiv.innerHTML = `
+                            <h4 class="font-semibold text-purple-900 mb-2">📅 Monthly Themes</h4>
+                            <div class="flex flex-wrap gap-2">
+                                ${calendarData.monthlyThemes.map(theme => `<span class="px-3 py-1 bg-purple-200 text-purple-800 rounded-full text-sm">${theme}</span>`).join('')}
+                            </div>`;
+                        content.appendChild(themesDiv);
+                    }
+
+                    // Display key dates if available
+                    if (calendarData.keyDates && calendarData.keyDates.length > 0) {
+                        const datesDiv = document.createElement('div');
+                        datesDiv.className = 'mb-6 p-4 bg-yellow-50 rounded-lg border-l-4 border-yellow-400';
+                        datesDiv.innerHTML = `
+                            <h4 class="font-semibold text-yellow-900 mb-2">🗓️ Key Dates to Remember</h4>
+                            <ul class="list-disc list-inside text-yellow-800 text-sm">
+                                ${calendarData.keyDates.map(date => `<li>${date}</li>`).join('')}
+                            </ul>`;
+                        content.appendChild(datesDiv);
+                    }
+
+                    // Display weekly calendar
+                    calendarData.calendar.forEach(week => {
+                        const weekDiv = document.createElement('div');
+                        weekDiv.className = 'mb-6';
+                        
+                        let weekContent = `
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                                <span class="bg-gradient-to-r from-purple-600 to-purple-800 text-white px-3 py-1 rounded-full text-sm mr-3">Week ${week.week}</span>
+                                Content Schedule
+                            </h3>
+                            <div class="grid gap-4">`;
+                        
+                        if (week.content && Array.isArray(week.content)) {
+                            week.content.forEach(item => {
+                                const contentTypeColors = {
+                                    'Post': 'bg-blue-100 border-blue-400 text-blue-800',
+                                    'Story': 'bg-pink-100 border-pink-400 text-pink-800',
+                                    'Reel': 'bg-indigo-100 border-indigo-400 text-indigo-800',
+                                    'Video': 'bg-teal-100 border-teal-400 text-teal-800',
+                                    'Live': 'bg-red-100 border-red-400 text-red-800',
+                                    'Collaboration': 'bg-green-100 border-green-400 text-green-800'
+                                };
+                                
+                                const colorClass = contentTypeColors[item.contentType] || 'bg-gray-100 border-gray-400 text-gray-800';
+                                
+                                weekContent += `
+                                    <div class="p-4 rounded-lg border-l-4 ${colorClass}">
+                                        <div class="flex justify-between items-start mb-2">
+                                            <div class="flex items-center">
+                                                <span class="font-semibold text-sm">${item.day}</span>
+                                                <span class="ml-2 px-2 py-1 bg-white bg-opacity-50 rounded text-xs font-medium">${item.contentType}</span>
+                                            </div>
+                                        </div>
+                                        <h4 class="font-semibold mb-2">${item.title}</h4>
+                                        <p class="text-sm mb-3">${item.description}</p>
+                                        ${item.hashtags ? `
+                                            <div class="mb-2">
+                                                <span class="text-xs font-medium">Hashtags: </span>
+                                                ${item.hashtags.map(tag => `<span class="inline-block bg-white bg-opacity-30 px-2 py-1 rounded text-xs mr-1">${tag}</span>`).join('')}
+                                            </div>` : ''}
+                                        ${item.tips ? `
+                                            <div class="text-xs italic opacity-90">
+                                                💡 <strong>Tip:</strong> ${item.tips}
+                                            </div>` : ''}
+                                    </div>`;
+                            });
+                        }
+                        
+                        weekContent += '</div>';
+                        weekDiv.innerHTML = weekContent;
+                        content.appendChild(weekDiv);
+                    });
+
+                    // Show download section
+                    downloadSection.classList.remove('hidden');
+                } else {
+                     throw new Error("JSON is valid but doesn't contain the expected 'calendar' array.");
+                }
+            } catch (e) {
+                console.error("Failed to parse AI response as JSON:", e);
+                content.innerHTML = `
+                    <div class="p-4 rounded-lg bg-yellow-50 border-l-4 border-yellow-400">
+                        <h4 class="font-semibold text-yellow-900">AI Response (Raw Text)</h4>
+                        <p class="text-sm text-yellow-800 mt-2 whitespace-pre-wrap">${rawResponseText}</p>
+                    </div>`;
+                downloadSection.classList.add('hidden');
+            }
+        }
+
+        // Initialize with default values
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('niche').value = 'lifestyle';
+            document.getElementById('audience').value = 'young_adult';
+            document.getElementById('language').value = 'hinglish';
+            document.getElementById('platform').value = 'instagram';
+            document.getElementById('postsPerWeek').value = '7';
+            document.getElementById('duration').value = '4';
+            generateContentMix();
+        });
+
+        function downloadExcel() {
+            if (!currentCalendarData) {
+                alert('No calendar data available to download');
+                return;
+            }
+
+            try {
+                // Create workbook
+                const wb = XLSX.utils.book_new();
+                
+                // Create main calendar worksheet
+                const calendarSheetData = [];
+                
+                // Add header info
+                calendarSheetData.push(['Content Calendar']);
+                calendarSheetData.push(['Niche:', currentSettings.niche]);
+                calendarSheetData.push(['Platform:', currentSettings.platform]);
+                calendarSheetData.push(['Duration:', currentSettings.duration + ' weeks']);
+                calendarSheetData.push(['Posts per week:', currentSettings.postsPerWeek]);
+                calendarSheetData.push(['Language:', currentSettings.language]);
+                calendarSheetData.push(['Target Audience:', currentSettings.audience]);
+                if (currentSettings.specialFocus) {
+                    calendarSheetData.push(['Special Focus:', currentSettings.specialFocus]);
+                }
+                calendarSheetData.push(['']);
+
+                // Add monthly themes if available
+                if (currentCalendarData.monthlyThemes && currentCalendarData.monthlyThemes.length > 0) {
+                    calendarSheetData.push(['Monthly Themes:']);
+                    currentCalendarData.monthlyThemes.forEach(theme => {
+                        calendarSheetData.push(['', theme]);
+                    });
+                    calendarSheetData.push(['']);
+                }
+
+                // Add key dates if available
+                if (currentCalendarData.keyDates && currentCalendarData.keyDates.length > 0) {
+                    calendarSheetData.push(['Key Dates:']);
+                    currentCalendarData.keyDates.forEach(date => {
+                        calendarSheetData.push(['', date]);
+                    });
+                    calendarSheetData.push(['']);
+                }
+
+                // Add calendar header
+                calendarSheetData.push(['Week', 'Day', 'Content Type', 'Title', 'Description', 'Hashtags', 'Tips']);
+                
+                // Add calendar content
+                if (currentCalendarData.calendar && Array.isArray(currentCalendarData.calendar)) {
+                    currentCalendarData.calendar.forEach(week => {
+                        if (week.content && Array.isArray(week.content)) {
+                            week.content.forEach((item, index) => {
+                                const hashtags = item.hashtags ? item.hashtags.join(', ') : '';
+                                calendarSheetData.push([
+                                    index === 0 ? week.week : '', // Show week number only for first item
+                                    item.day || '',
+                                    item.contentType || '',
+                                    item.title || '',
+                                    item.description || '',
+                                    hashtags,
+                                    item.tips || ''
+                                ]);
+                            });
+                        }
+                    });
+                }
+
+                // Create worksheet
+                const ws = XLSX.utils.aoa_to_sheet(calendarSheetData);
+                
+                // Set column widths
+                ws['!cols'] = [
+                    {wch: 8},  // Week
+                    {wch: 12}, // Day
+                    {wch: 15}, // Content Type
+                    {wch: 30}, // Title
+                    {wch: 40}, // Description
+                    {wch: 30}, // Hashtags
+                    {wch: 35}  // Tips
+                ];
+
+                // Add worksheet to workbook
+                XLSX.utils.book_append_sheet(wb, ws, 'Content Calendar');
+
+                // Generate filename
+                const filename = `Content_Calendar_${currentSettings.niche}_${currentSettings.platform}_${new Date().toISOString().split('T')[0]}.xlsx`;
+                
+                // Save file
+                XLSX.writeFile(wb, filename);
+
+                // Show success message
+                showNotification('Excel file downloaded successfully!', 'success');
+
+            } catch (error) {
+                console.error('Error creating Excel file:', error);
+                showNotification('Error creating Excel file: ' + error.message, 'error');
+            }
+        }
+
+        function startOver() {
+            // Reset all form fields to default
+            document.getElementById('niche').value = 'lifestyle';
+            document.getElementById('audience').value = 'young_adult';
+            document.getElementById('language').value = 'hinglish';
+            document.getElementById('platform').value = 'instagram';
+            document.getElementById('postsPerWeek').value = '7';
+            document.getElementById('duration').value = '4';
+            document.getElementById('specialFocus').value = '';
+            
+            // Hide sections
+            document.getElementById('aiCalendarSection').classList.add('hidden');
+            document.getElementById('downloadSection').classList.add('hidden');
+            
+            // Clear data
+            currentCalendarData = null;
+            
+            // Regenerate content mix with defaults
+            generateContentMix();
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            showNotification('Reset complete! Ready to create a new calendar.', 'success');
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+            
+            notification.className = `fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.transform = 'translateX(400px)';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
