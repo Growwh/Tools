@@ -278,6 +278,14 @@
             gap: 24px;
             margin-bottom: 40px;
         }
+
+        .carousel-slide-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            min-height: 450px;
+        }
         
         .carousel-slide {
             width: 400px;
@@ -285,15 +293,16 @@
             background: #ffffff;
             color: #270a47;
             padding: 40px;
-            /* REMOVED border-radius */
             position: relative;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-            margin: 0 auto;
+            overflow: hidden;
             overflow: hidden;
             border: 2px solid #e2e8f0;
+            box-sizing: border-box;
+            flex-shrink: 0;
         }
         
         .slide-background {
@@ -410,7 +419,6 @@
         /* Template-specific styles */
         .template-minimal .slide-title {
             color: #270A47;
-            font-size: 28px;
         }
         
         .template-vibrant {
@@ -611,22 +619,6 @@
                 gap: 20px;
             }
             
-            .carousel-slide {
-                width: 100%;
-                max-width: 380px;
-                height: 380px;
-                padding: 32px 24px;
-            }
-            
-            .slide-title {
-                font-size: 22px;
-                margin-bottom: 20px;
-            }
-            
-            .slide-text {
-                font-size: 15px;
-            }
-            
             .action-buttons {
                 grid-template-columns: 1fr;
             }
@@ -639,19 +631,6 @@
             
             .header h1 {
                 font-size: 1.9rem;
-            }
-            
-            .carousel-slide {
-                height: 350px;
-                padding: 28px 20px;
-            }
-            
-            .slide-title {
-                font-size: 20px;
-            }
-            
-            .slide-text {
-                font-size: 14px;
             }
         }
     </style>
@@ -1228,6 +1207,7 @@ Make sure the JSON is properly formatted and valid. The first slide should hook 
                 }
                 
                 slidesHTML += `
+                <div class="carousel-slide-wrapper">
                     <div class="${slideClass}" id="slide-${index}" data-slide-index="${index}" ${slideStyle}>
                         ${isFirst && data.backgroundImage ? '<div class="slide-overlay"></div>' : ''}
                         ${!isFirst ? `<div class="slide-number">${index + 1}/${data.slides.length}</div>` : ''}
@@ -1243,6 +1223,7 @@ Make sure the JSON is properly formatted and valid. The first slide should hook 
                             <div class="slide-logo">Powered by Growwh.com</div>
                         </div>
                     </div>
+                </div>
                 `;
             });
             
@@ -1308,7 +1289,13 @@ Make sure the JSON is properly formatted and valid. The first slide should hook 
                                 if (clonedSlide) {
                                     clonedSlide.style.width = '400px';
                                     clonedSlide.style.height = '400px';
+                                    clonedSlide.style.minWidth = '400px';
+                                    clonedSlide.style.minHeight = '400px';
+                                    clonedSlide.style.maxWidth = '400px';
+                                    clonedSlide.style.maxHeight = '400px';
                                     clonedSlide.style.padding = '40px';
+                                    clonedSlide.style.boxSizing = 'border-box';
+                                    clonedSlide.style.margin = '0';
                                     clonedSlide.style.fontFamily = 'Inter, system-ui, -apple-system, sans-serif';
                                     // REMOVED border radius from cloned slide
                                 }
